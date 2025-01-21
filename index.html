@@ -32,9 +32,10 @@
 
       .rule-line {
         display: grid;
-        grid-template-columns: repeat(4, 1fr);
+        grid-template-columns: repeat(4, 1fr) auto;
         gap: 16px;
         margin-bottom: 24px;
+        align-items: start;
       }
 
       .rule-column {
@@ -79,6 +80,21 @@
         background: #3b82f6;
         color: white;
         transform: scale(1.1);
+      }
+
+      .delete-button {
+        background-color: #ef4444;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.2s ease;
+      }
+
+      .delete-button:hover {
+        background-color: #dc2626;
       }
 
       .notification {
@@ -166,7 +182,6 @@
         const newRuleLine = document.createElement('div');
         newRuleLine.className = 'rule-line';
         
-        // Récupération des valeurs de la dernière ligne
         let sourceIp, destinationIp, protocol, port;
         const ruleLines = document.getElementsByClassName('rule-line');
         const lastRuleLine = ruleLines[ruleLines.length - 1];
@@ -200,6 +215,7 @@
             <input type="text" class="input-field port" placeholder="Port" value="${type === 'port' ? '' : port || ''}" oninput="validateInput(this, 'port')">
             <button onclick="duplicateField('port')" class="add-button">+</button>
           </div>
+          <button onclick="deleteLine(this)" class="delete-button">Supprimer</button>
         `;
 
         const saveButton = document.querySelector('.save-button');
@@ -213,6 +229,13 @@
           newRuleLine.querySelector('.protocol').focus();
         } else if (type === 'port') {
           newRuleLine.querySelector('.port').focus();
+        }
+      }
+
+      function deleteLine(button) {
+        const ruleLine = button.closest('.rule-line');
+        if (ruleLine) {
+          ruleLine.remove();
         }
       }
 
