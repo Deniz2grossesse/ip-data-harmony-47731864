@@ -121,6 +121,28 @@
           padding: 1rem;
         }
       }
+
+      .save-button {
+        display: block;
+        margin: 20px auto 0;
+        padding: 12px 24px;
+        background-color: #3b82f6;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .save-button:hover {
+        background-color: #2563eb;
+        transform: translateY(-1px);
+      }
+
+      .save-button:active {
+        transform: translateY(0);
+      }
     </style>
     <script>
       function validateIpFormat(ip) {
@@ -219,6 +241,45 @@
         }, 3000);
       }
 
+      function saveRules() {
+        const rules = [];
+        const ruleLines = document.querySelectorAll('.rule-line');
+        
+        ruleLines.forEach(line => {
+          const sourceIp = line.querySelector('.sourceIp, #sourceIp').value;
+          const destinationIp = line.querySelector('.destinationIp, #destinationIp').value;
+          const protocol = line.querySelector('.protocol, #protocol').value;
+          const port = line.querySelector('.port, #port').value;
+          
+          if (sourceIp && destinationIp && protocol && port) {
+            if (!validateIpFormat(sourceIp) || !validateIpFormat(destinationIp) || !validatePort(port)) {
+              showNotification('Veuillez corriger les erreurs de format avant de sauvegarder', true);
+              return;
+            }
+            rules.push({
+              sourceIp: sourceIp,
+              destinationIp: destinationIp,
+              protocol: protocol,
+              port: port
+            });
+          }
+        });
+        
+        if (rules.length === 0) {
+          showNotification('Aucune donnée valide à sauvegarder', true);
+          return;
+        }
+        
+        google.script.run
+          .withSuccessHandler(function(response) {
+            showNotification(response.message, !response.success);
+          })
+          .withFailureHandler(function(error) {
+            showNotification('Erreur lors de la sauvegarde: ' + error, true);
+          })
+          .saveData(rules);
+      }
+
       document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('sourceIp').addEventListener('input', function() {
           validateInput(this, 'ip');
@@ -259,6 +320,7 @@
           <button onclick="duplicateField('port')" class="add-button">+</button>
         </div>
       </div>
+      <button onclick="saveRules()" class="save-button">Valider</button>
     </div>
     
     <div id="notification" class="notification hidden"></div>
