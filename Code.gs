@@ -36,14 +36,16 @@ function validatePort(port) {
 
 function checkDuplicates() {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-  const data = sheet.getRange(11, 1, 140, 4).getValues();
+  const data = sheet.getRange(11, 1, 140, 5).getValues(); // Ajout de la colonne E
   const duplicates = [];
   
   for (let i = 0; i < data.length; i++) {
     if (data[i][0] === "") continue; // Skip empty rows
+    if (data[i][4] !== "") continue; // Skip rows with comments in column E
     
     for (let j = i + 1; j < data.length; j++) {
       if (data[j][0] === "") continue; // Skip empty rows
+      if (data[j][4] !== "") continue; // Skip rows with comments in column E
       
       if (data[i][0] === data[j][0] && 
           data[i][1] === data[j][1] && 
