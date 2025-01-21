@@ -51,21 +51,25 @@ function checkDuplicates() {
           data[i][3] === data[j][3]) {
         duplicates.push({
           line1: i + 11,
-          line2: j + 11
+          line2: j + 11,
+          data: {
+            sourceIp: data[i][0],
+            destinationIp: data[i][1],
+            protocol: data[i][2],
+            port: data[i][3]
+          }
         });
       }
     }
   }
   
   if (duplicates.length === 0) {
-    return { success: true, message: "Aucun doublon trouvé" };
+    return { success: true, message: "Aucun doublon trouvé", duplicates: [] };
   } else {
-    const duplicateMessages = duplicates.map(dup => 
-      `doublons entre ligne ${dup.line1} et ${dup.line2}`
-    );
     return { 
       success: false, 
-      message: duplicateMessages.join('\n')
+      message: "Des doublons ont été trouvés",
+      duplicates: duplicates
     };
   }
 }
