@@ -5,6 +5,15 @@ function doGet() {
     .setFaviconUrl('https://www.google.com/images/favicon.ico');
 }
 
+function showNetworkRulesUI() {
+  const html = HtmlService.createTemplateFromFile('index')
+    .evaluate()
+    .setTitle('Network Rules Manager')
+    .setWidth(1000)
+    .setHeight(600);
+  SpreadsheetApp.getUi().showModalDialog(html, 'Gestionnaire de règles réseau');
+}
+
 function validateIpFormat(ip) {
   const regex = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/;
   if (!regex.test(ip)) return false;
