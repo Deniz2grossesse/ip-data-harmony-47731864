@@ -40,14 +40,6 @@ function verifySheetData() {
       const protocol = sheet.getRange(row, 3).getValue();
       const port = sheet.getRange(row, 4).getValue();
       
-      const rowData = {
-        row: row,
-        sourceIp: sourceIp,
-        destinationIp: destinationIp,
-        protocol: protocol,
-        port: port
-      };
-      
       if (!validateIpFormat(sourceIp)) {
         errors.push(`Ligne ${row}: Format IP source invalide`);
       }
@@ -61,7 +53,13 @@ function verifySheetData() {
         errors.push(`Ligne ${row}: Port invalide`);
       }
       
-      data.push(rowData);
+      data.push({
+        row: row,
+        sourceIp: sourceIp,
+        destinationIp: destinationIp,
+        protocol: protocol,
+        port: port
+      });
     }
     
     return {
