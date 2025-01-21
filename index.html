@@ -238,37 +238,36 @@
         const newRuleLine = document.createElement('div');
         newRuleLine.className = 'rule-line';
         
-        let sourceIp, destinationIp, protocol, port;
+        // Récupérer la dernière ligne de règle
         const ruleLines = document.getElementsByClassName('rule-line');
         const lastRuleLine = ruleLines[ruleLines.length - 1];
         
-        if (lastRuleLine) {
-          sourceIp = lastRuleLine.querySelector('input[id="sourceIp"], input.sourceIp')?.value || '';
-          destinationIp = lastRuleLine.querySelector('input[id="destinationIp"], input.destinationIp')?.value || '';
-          protocol = lastRuleLine.querySelector('select[id="protocol"], select.protocol')?.value || 'ssh';
-          port = lastRuleLine.querySelector('input[id="port"], input.port')?.value || '';
-        }
+        // Récupérer les valeurs de la dernière ligne
+        const sourceIp = lastRuleLine.querySelector('.sourceIp, #sourceIp').value;
+        const destinationIp = lastRuleLine.querySelector('.destinationIp, #destinationIp').value;
+        const protocol = lastRuleLine.querySelector('.protocol, #protocol').value;
+        const port = lastRuleLine.querySelector('.port, #port').value;
 
         newRuleLine.innerHTML = `
           <div class="rule-column">
-            <input type="text" class="input-field sourceIp" placeholder="IP source" value="${type === 'source' ? '' : sourceIp || ''}" oninput="validateInput(this, 'ip')">
+            <input type="text" class="input-field sourceIp" placeholder="IP source" value="${type === 'source' ? '' : sourceIp}" oninput="validateInput(this, 'ip')">
             <button onclick="duplicateField('source')" class="add-button">+</button>
           </div>
           <div class="rule-column">
-            <input type="text" class="input-field destinationIp" placeholder="IP destination" value="${type === 'destination' ? '' : destinationIp || ''}" oninput="validateInput(this, 'ip')">
+            <input type="text" class="input-field destinationIp" placeholder="IP destination" value="${type === 'destination' ? '' : destinationIp}" oninput="validateInput(this, 'ip')">
             <button onclick="duplicateField('destination')" class="add-button">+</button>
           </div>
           <div class="rule-column">
             <select class="input-field protocol">
-              <option value="ssh" ${type !== 'protocol' && protocol === 'ssh' ? 'selected' : ''}>SSH</option>
-              <option value="https" ${type !== 'protocol' && protocol === 'https' ? 'selected' : ''}>HTTPS</option>
-              <option value="ping" ${type !== 'protocol' && protocol === 'ping' ? 'selected' : ''}>PING</option>
-              <option value="smtp" ${type !== 'protocol' && protocol === 'smtp' ? 'selected' : ''}>SMTP</option>
+              <option value="ssh" ${protocol === 'ssh' ? 'selected' : ''}>SSH</option>
+              <option value="https" ${protocol === 'https' ? 'selected' : ''}>HTTPS</option>
+              <option value="ping" ${protocol === 'ping' ? 'selected' : ''}>PING</option>
+              <option value="smtp" ${protocol === 'smtp' ? 'selected' : ''}>SMTP</option>
             </select>
             <button onclick="duplicateField('protocol')" class="add-button">+</button>
           </div>
           <div class="rule-column">
-            <input type="text" class="input-field port" placeholder="Port" value="${type === 'port' ? '' : port || ''}" oninput="validateInput(this, 'port')">
+            <input type="text" class="input-field port" placeholder="Port" value="${type === 'port' ? '' : port}" oninput="validateInput(this, 'port')">
             <button onclick="duplicateField('port')" class="add-button">+</button>
           </div>
           <div class="rule-column">
@@ -277,9 +276,11 @@
           <button onclick="deleteLine(this)" class="delete-button">Supprimer</button>
         `;
 
+        // Insérer la nouvelle ligne avant le bouton de sauvegarde
         const saveButton = document.querySelector('.save-button');
-        container.insertBefore(newRuleLine, saveButton);
+        container.insertBefore(newRuleLine, saveButton.parentElement);
 
+        // Focus sur le champ approprié
         if (type === 'source') {
           newRuleLine.querySelector('.sourceIp').focus();
         } else if (type === 'destination') {
