@@ -139,57 +139,23 @@ function createFile() {
       }
 
       .rule-line {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr) auto;
+        display: flex;
+        flex-direction: column;
         gap: 1rem;
         margin-bottom: 1rem;
         align-items: start;
       }
 
       .form-group {
-        margin-bottom: 1rem;
-      }
-
-      label {
-        display: block;
-        margin-bottom: 0.5rem;
-        font-weight: 500;
-        color: #1d1d1f;
-      }
-
-      input, select {
         width: 100%;
-        padding: 0.75rem;
-        border: 1px solid #d2d2d7;
-        border-radius: 8px;
-        font-size: 1rem;
-        transition: border-color 0.2s ease;
+        margin-bottom: 1rem;
+        position: relative;
       }
 
-      input:focus, select:focus {
-        outline: none;
-        border-color: #0071e3;
-        box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.1);
-      }
-
-      .btn {
-        padding: 0.75rem 1.5rem;
-        border: none;
-        border-radius: 8px;
-        font-size: 1rem;
-        font-weight: 500;
-        cursor: pointer;
-        transition: background-color 0.2s ease;
-      }
-
-      .btn-primary {
-        background-color: #0071e3;
-        color: white;
-      }
-
-      .btn-secondary {
-        background-color: #f5f5f7;
-        color: #1d1d1f;
+      .btn-add-container {
+        display: flex;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
       }
 
       .btn-add {
@@ -204,6 +170,8 @@ function createFile() {
         justify-content: center;
         font-size: 1.2rem;
         line-height: 1;
+        cursor: pointer;
+        border: none;
       }
 
       .verification-results {
@@ -266,6 +234,9 @@ function createFile() {
               <label>IP Destination</label>
               <input type="text" class="destinationIp" required pattern="^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$"
                      title="Format IP valide requis (ex: 192.168.1.1)">
+              <div class="btn-add-container">
+                <button type="button" class="btn-add add-destination" title="Ajouter destination">+</button>
+              </div>
             </div>
             <div class="form-group">
               <label>Protocole</label>
@@ -275,15 +246,16 @@ function createFile() {
                 <option value="ping">PING</option>
                 <option value="smtp">SMTP</option>
               </select>
+              <div class="btn-add-container">
+                <button type="button" class="btn-add add-protocol" title="Ajouter protocole">+</button>
+              </div>
             </div>
             <div class="form-group">
               <label>Port</label>
               <input type="number" class="port" required min="1" max="65000">
-            </div>
-            <div class="form-group" style="display: flex; gap: 0.5rem;">
-              <button type="button" class="btn-add add-destination" title="Ajouter destination">+</button>
-              <button type="button" class="btn-add add-protocol" title="Ajouter protocole">+</button>
-              <button type="button" class="btn-add add-port" title="Ajouter port">+</button>
+              <div class="btn-add-container">
+                <button type="button" class="btn-add add-port" title="Ajouter port">+</button>
+              </div>
             </div>
           </div>
         </div>
@@ -346,6 +318,9 @@ function createFile() {
             <label>IP Destination</label>
             <input type="text" class="destinationIp" required pattern="^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$"
                    title="Format IP valide requis (ex: 192.168.1.1)" value="\${destinationIp}">
+            <div class="btn-add-container">
+              <button type="button" class="btn-add add-destination" title="Ajouter destination">+</button>
+            </div>
           </div>
           <div class="form-group">
             <label>Protocole</label>
@@ -355,15 +330,16 @@ function createFile() {
               <option value="ping" \${protocol === 'ping' ? 'selected' : ''}>PING</option>
               <option value="smtp" \${protocol === 'smtp' ? 'selected' : ''}>SMTP</option>
             </select>
+            <div class="btn-add-container">
+              <button type="button" class="btn-add add-protocol" title="Ajouter protocole">+</button>
+            </div>
           </div>
           <div class="form-group">
             <label>Port</label>
             <input type="number" class="port" required min="1" max="65000" value="\${port}">
-          </div>
-          <div class="form-group" style="display: flex; gap: 0.5rem;">
-            <button type="button" class="btn-add add-destination" title="Ajouter destination">+</button>
-            <button type="button" class="btn-add add-protocol" title="Ajouter protocole">+</button>
-            <button type="button" class="btn-add add-port" title="Ajouter port">+</button>
+            <div class="btn-add-container">
+              <button type="button" class="btn-add add-port" title="Ajouter port">+</button>
+            </div>
           </div>
         \`;
         return line;
