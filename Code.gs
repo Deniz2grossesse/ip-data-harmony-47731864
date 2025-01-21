@@ -147,7 +147,31 @@ function createFile() {
       }
 
       .form-group {
+        display: flex;
+        flex-direction: column;
         margin-bottom: 1rem;
+      }
+
+      .btn-add-container {
+        margin-top: 0.5rem;
+        text-align: center;
+      }
+
+      .btn-add {
+        padding: 0.25rem;
+        background-color: #34c759;
+        color: white;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        line-height: 1;
+        cursor: pointer;
+        border: none;
+        margin: 0 auto;
       }
 
       .btn-container {
