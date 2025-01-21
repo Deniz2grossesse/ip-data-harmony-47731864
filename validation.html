@@ -1,0 +1,130 @@
+<script>
+function validateIpAddress(ip) {
+  const regex = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/;
+  if (!regex.test(ip)) return false;
+  
+  const parts = ip.split('.');
+  return parts.every(part => {
+    const num = parseInt(part, 10);
+    return num >= 0 && num <= 255;
+  });
+}
+
+function showNotification(message, isError = false) {
+  const notification = document.getElementById('notification');
+  notification.textContent = message;
+  notification.classList.remove('hidden');
+  notification.classList.toggle('error', isError);
+  notification.classList.add('show');
+  
+  setTimeout(() => {
+    notification.classList.remove('show');
+    setTimeout(() => {
+      notification.classList.add('hidden');
+    }, 300);
+  }, 3000);
+}
+
+function addDestinationField() {
+  const container = document.getElementById('destinationsContainer');
+  const newGroup = document.createElement('div');
+  newGroup.className = 'destination-group';
+  newGroup.innerHTML = `
+    <div class="form-group">
+      <label>Destination IP</label>
+      <input type="text" class="destinationIp" required pattern="^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$">
+      <span class="validation-message"></span>
+    </div>
+  `;
+  container.appendChild(newGroup);
+  
+  // Animation
+  newGroup.style.opacity = '0';
+  requestAnimationFrame(() => {
+    newGroup.style.transition = 'opacity 0.3s ease';
+    newGroup.style.opacity = '1';
+  });
+}
+
+function updatePreviewTable() {
+  const sourceIp = document.getElementById('sourceIp').value;
+  const destinations = Array.from(document.getElementsByClassName('destinationIp')).map(input => input.value);
+  const protocol = document.getElementById('protocol').value;
+  const port = document.getElementById('port').value;
+  
+  const tbody = document.querySelector('#previewTable tbody');
+  tbody.innerHTML = '';
+  
+  destinations.forEach(destIp => {
+    if (destIp) {
+      const row = tbody.insertRow();
+      row.insertCell().textContent = sourceIp;
+      row.insertCell().textContent = destIp;
+      row.insertCell().textContent = protocol;
+      row.insertCell().textContent = port;
+    }
+  });
+}
+
+function validateAndSave() {
+  const sourceIp = document.getElementById('sourceIp').value;
+  const destinations = Array.from(document.getElementsByClassName('destinationIp')).map(input => input.value);
+  const protocol = document.getElementById('protocol').value;
+  const port = document.getElementById('port').value;
+  
+  // Validation
+  if (!validateIpAddress(sourceIp)) {
+    showNotification("Format d'adresse IP source invalide", true);
+    return;
+  }
+  
+  for (const destIp of destinations) {
+    if (!validateIpAddress(destIp)) {
+      showNotification("Format d'adresse IP destination invalide", true);
+      return;
+    }
+  }
+  
+  if (port < 1 || port > 65535) {
+    showNotification("Le port doit être entre 1 et 65535", true);
+    return;
+  }
+  
+  // Préparer les données
+  const data = destinations.map(destIp => ({
+    sourceIp,
+    destinationIp: destIp,
+    protocol,
+    port
+  }));
+  
+  // Sauvegarder
+  google.script.run
+    .withSuccessHandler(function(response) {
+      if (response.success) {
+        showNotification(response.message);
+        document.getElementById('networkForm').reset();
+        document.querySelector('#previewTable tbody').innerHTML = '';
+      } else {
+        showNotification(response.message, true);
+      }
+    })
+    .withFailureHandler(function(error) {
+      showNotification("Erreur lors de l'enregistrement: " + error, true);
+    })
+    .saveData(data);
+}
+
+// Event Listeners
+document.getElementById('addDestination').addEventListener('click', addDestinationField);
+
+['sourceIp', 'protocol', 'port'].forEach(id => {
+  document.getElementById(id).addEventListener('input', updatePreviewTable);
+});
+
+document.getElementById('destinationsContainer').addEventListener('input', function(e) {
+  if (e.target.classList.contains('destinationIp')) {
+    updatePreviewTable();
+  }
+});
+</script>
