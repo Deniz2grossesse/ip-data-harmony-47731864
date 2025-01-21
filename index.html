@@ -4,60 +4,29 @@
     <base target="_top">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="<?!= include('styles'); ?>">
+    <?!= include('styles'); ?>
   </head>
   <body>
     <div class="container">
-      <h1>Gestionnaire de Règles Réseau</h1>
-      
-      <div id="rulesContainer">
-        <div class="rule-line">
-          <div class="form-group">
-            <label>IP Source</label>
-            <input type="text" class="sourceIp" required pattern="^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$">
-            <div class="btn-add-container">
-              <button type="button" class="btn-add" onclick="addRule('source')" title="Ajouter source">+</button>
-            </div>
-          </div>
-          
-          <div class="form-group">
-            <label>IP Destination</label>
-            <input type="text" class="destinationIp" required pattern="^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$">
-            <div class="btn-add-container">
-              <button type="button" class="btn-add" onclick="addRule('destination')" title="Ajouter destination">+</button>
-            </div>
-          </div>
-          
-          <div class="form-group">
-            <label>Protocole</label>
-            <select class="protocol" required>
-              <option value="ssh">SSH</option>
-              <option value="https">HTTPS</option>
-              <option value="ping">PING</option>
-              <option value="smtp">SMTP</option>
-            </select>
-            <div class="btn-add-container">
-              <button type="button" class="btn-add" onclick="addRule('protocol')" title="Ajouter protocole">+</button>
-            </div>
-          </div>
-          
-          <div class="form-group">
-            <label>Port</label>
-            <input type="number" class="port" required min="1" max="65535">
-            <div class="btn-add-container">
-              <button type="button" class="btn-add" onclick="addRule('port')" title="Ajouter port">+</button>
-            </div>
-          </div>
-        </div>
+      <div class="rule-line">
+        <input type="text" id="sourceIp" placeholder="IP source" class="input-field">
+        <input type="text" id="destinationIp" placeholder="IP destination" class="input-field">
+        <select id="protocol" class="input-field">
+          <option value="ssh">SSH</option>
+          <option value="https">HTTPS</option>
+          <option value="ping">PING</option>
+          <option value="smtp">SMTP</option>
+        </select>
+        <input type="number" id="port" placeholder="Port" class="input-field" min="1" max="65535">
       </div>
       
-      <div class="btn-container">
-        <button type="button" class="btn-secondary" onclick="verifyRules()">Vérifier</button>
-        <button type="button" class="btn-primary" onclick="saveRules()">Enregistrer</button>
+      <div class="button-row">
+        <button onclick="addRule()" class="action-button">Ajouter une règle</button>
+        <button onclick="verifyRules()" class="action-button">Vérifier</button>
+        <button onclick="saveRules()" class="action-button primary">Enregistrer</button>
       </div>
-      
-      <div class="preview-container">
-        <h2>Aperçu des règles</h2>
+
+      <div id="rulesPreview" class="rules-preview">
         <table id="previewTable">
           <thead>
             <tr>
@@ -74,6 +43,6 @@
     
     <div id="notification" class="notification hidden"></div>
     
-    <script src="<?!= include('script'); ?>"></script>
+    <?!= include('script'); ?>
   </body>
 </html>
