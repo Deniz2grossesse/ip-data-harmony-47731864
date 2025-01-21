@@ -291,7 +291,10 @@
       function deleteLine(button) {
         const ruleLine = button.closest('.rule-line');
         if (ruleLine) {
-          ruleLine.remove();
+          const lineNumber = Array.from(ruleLine.parentNode.children).indexOf(ruleLine) + 1;
+          if (confirm(`Êtes-vous sûr de vouloir supprimer la ligne ${lineNumber} ?`)) {
+            ruleLine.remove();
+          }
         }
       }
 
@@ -419,22 +422,24 @@
           const rowText = row.cells[0].textContent;
           const lineToDelete = parseInt(rowText.split('et')[1].trim());
           
-          google.script.run
-            .withSuccessHandler(function(response) {
-              if (response.success) {
-                row.remove();
-                if (document.getElementById('duplicatesTableBody').children.length === 0) {
-                  document.getElementById('duplicatesContainer').classList.remove('visible');
+          if (confirm(`Êtes-vous sûr de vouloir supprimer la ligne ${lineToDelete} ?`)) {
+            google.script.run
+              .withSuccessHandler(function(response) {
+                if (response.success) {
+                  row.remove();
+                  if (document.getElementById('duplicatesTableBody').children.length === 0) {
+                    document.getElementById('duplicatesContainer').classList.remove('visible');
+                  }
+                  showNotification(response.message);
+                } else {
+                  showNotification(response.message, true);
                 }
-                showNotification(response.message);
-              } else {
-                showNotification(response.message, true);
-              }
-            })
-            .withFailureHandler(function(error) {
-              showNotification('Erreur lors de la suppression: ' + error, true);
-            })
-            .deleteRow(lineToDelete);
+              })
+              .withFailureHandler(function(error) {
+                showNotification('Erreur lors de la suppression: ' + error, true);
+              })
+              .deleteRow(lineToDelete);
+          }
         }
       }
 
