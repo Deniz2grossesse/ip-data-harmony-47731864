@@ -23,13 +23,21 @@ function duplicateField(type) {
   const protocol = document.getElementById('protocol').value;
   const port = document.getElementById('port').value;
 
-  // Validation de base
-  if (!sourceIp) {
-    showNotification('Veuillez d\'abord remplir l\'IP source', true);
+  // Validation de base pour l'IP source
+  if (!sourceIp || !validateIpFormat(sourceIp)) {
+    showNotification('Format IP source invalide', true);
     return;
   }
-  if (!validateIpFormat(sourceIp)) {
-    showNotification('Format IP source invalide', true);
+
+  // Validation de base pour l'IP destination
+  if (!destinationIp || !validateIpFormat(destinationIp)) {
+    showNotification('Format IP destination invalide', true);
+    return;
+  }
+
+  // Validation du port
+  if (!port || !validatePort(port)) {
+    showNotification('Port invalide (doit être entre 1 et 65535)', true);
     return;
   }
 
@@ -43,6 +51,7 @@ function duplicateField(type) {
 
   rules.push(newRule);
   updatePreviewTable();
+  showNotification('Règle dupliquée avec succès');
   
   // Mettre à jour les champs selon le type
   if (type === 'source') {
