@@ -18,98 +18,55 @@ function validatePort(port) {
 }
 
 function duplicateField(type) {
-  const sourceIp = document.getElementById('sourceIp').value;
-  const destinationIp = document.getElementById('destinationIp').value;
-  const protocol = document.getElementById('protocol').value;
-  const port = document.getElementById('port').value;
-
-  // Validation de base pour l'IP source
-  if (!sourceIp || !validateIpFormat(sourceIp)) {
-    showNotification('Format IP source invalide', true);
-    return;
-  }
-
-  // Validation de base pour l'IP destination
-  if (!destinationIp || !validateIpFormat(destinationIp)) {
-    showNotification('Format IP destination invalide', true);
-    return;
-  }
-
-  // Validation du port
-  if (!port || !validatePort(port)) {
-    showNotification('Port invalide (doit être entre 1 et 65535)', true);
-    return;
-  }
-
-  // Créer une nouvelle règle
-  const newRule = {
-    sourceIp: sourceIp,
-    destinationIp: destinationIp,
-    protocol: protocol,
-    port: port
-  };
-
-  // Si le type est spécifié, on vide le champ correspondant
-  if (type === 'source') {
-    newRule.sourceIp = '';
-  } else if (type === 'destination') {
-    newRule.destinationIp = '';
-  } else if (type === 'protocol') {
-    newRule.protocol = '';
-  } else if (type === 'port') {
-    newRule.port = '';
-  }
-
-  rules.push(newRule);
-  updatePreviewTable();
-  showNotification('Règle dupliquée avec succès');
-
-  // Focus et vide le champ correspondant
-  if (type === 'source') {
-    document.getElementById('sourceIp').value = '';
-    document.getElementById('sourceIp').focus();
-  } else if (type === 'destination') {
-    document.getElementById('destinationIp').value = '';
-    document.getElementById('destinationIp').focus();
-  } else if (type === 'protocol') {
-    document.getElementById('protocol').selectedIndex = 0;
-    document.getElementById('protocol').focus();
-  } else if (type === 'port') {
-    document.getElementById('port').value = '';
-    document.getElementById('port').focus();
-  }
-}
-
-function addRule() {
-  const sourceIp = document.getElementById('sourceIp').value;
-  const destinationIp = document.getElementById('destinationIp').value;
-  const protocol = document.getElementById('protocol').value;
-  const port = document.getElementById('port').value;
-
-  // Validation
-  if (!validateIpFormat(sourceIp)) {
-    showNotification('Format IP source invalide', true);
-    return;
-  }
-  if (!validateIpFormat(destinationIp)) {
-    showNotification('Format IP destination invalide', true);
-    return;
-  }
-  if (!validatePort(port)) {
-    showNotification('Port invalide (doit être entre 1 et 65535)', true);
-    return;
-  }
-
-  const rule = { sourceIp, destinationIp, protocol, port };
-  rules.push(rule);
-  updatePreviewTable();
-  showNotification('Règle ajoutée avec succès');
+  const container = document.querySelector('.container');
+  const newRuleLine = document.createElement('div');
+  newRuleLine.className = 'rule-line';
   
-  // Clear inputs
-  document.getElementById('sourceIp').value = '';
-  document.getElementById('destinationIp').value = '';
-  document.getElementById('protocol').selectedIndex = 0;
-  document.getElementById('port').value = '';
+  // Récupérer les valeurs actuelles
+  const sourceIp = document.getElementById('sourceIp').value;
+  const destinationIp = document.getElementById('destinationIp').value;
+  const protocol = document.getElementById('protocol').value;
+  const port = document.getElementById('port').value;
+
+  // Créer le HTML pour la nouvelle ligne
+  newRuleLine.innerHTML = `
+    <div class="rule-column">
+      <input type="text" class="input-field sourceIp" placeholder="IP source" value="${type === 'source' ? '' : sourceIp}">
+      <button onclick="duplicateField('source')" class="add-button">+</button>
+    </div>
+    <div class="rule-column">
+      <input type="text" class="input-field destinationIp" placeholder="IP destination" value="${type === 'destination' ? '' : destinationIp}">
+      <button onclick="duplicateField('destination')" class="add-button">+</button>
+    </div>
+    <div class="rule-column">
+      <select class="input-field protocol">
+        <option value="ssh" ${type !== 'protocol' && protocol === 'ssh' ? 'selected' : ''}>SSH</option>
+        <option value="https" ${type !== 'protocol' && protocol === 'https' ? 'selected' : ''}>HTTPS</option>
+        <option value="ping" ${type !== 'protocol' && protocol === 'ping' ? 'selected' : ''}>PING</option>
+        <option value="smtp" ${type !== 'protocol' && protocol === 'smtp' ? 'selected' : ''}>SMTP</option>
+      </select>
+      <button onclick="duplicateField('protocol')" class="add-button">+</button>
+    </div>
+    <div class="rule-column">
+      <input type="number" class="input-field port" placeholder="Port" min="1" max="65535" value="${type === 'port' ? '' : port}">
+      <button onclick="duplicateField('port')" class="add-button">+</button>
+    </div>
+  `;
+
+  // Insérer la nouvelle ligne après la dernière ligne de règle
+  const lastRuleLine = document.querySelector('.rule-line:last-child');
+  lastRuleLine.parentNode.insertBefore(newRuleLine, lastRuleLine.nextSibling);
+
+  // Focus sur le champ vidé
+  if (type === 'source') {
+    newRuleLine.querySelector('.sourceIp').focus();
+  } else if (type === 'destination') {
+    newRuleLine.querySelector('.destinationIp').focus();
+  } else if (type === 'protocol') {
+    newRuleLine.querySelector('.protocol').focus();
+  } else if (type === 'port') {
+    newRuleLine.querySelector('.port').focus();
+  }
 }
 
 function showNotification(message, isError = false) {
@@ -121,60 +78,5 @@ function showNotification(message, isError = false) {
   setTimeout(() => {
     notification.classList.add('hidden');
   }, 3000);
-}
-
-function updatePreviewTable() {
-  const tbody = document.querySelector('#previewTable tbody');
-  tbody.innerHTML = '';
-  
-  rules.forEach(rule => {
-    const row = tbody.insertRow();
-    row.insertCell().textContent = rule.sourceIp;
-    row.insertCell().textContent = rule.destinationIp;
-    row.insertCell().textContent = rule.protocol;
-    row.insertCell().textContent = rule.port;
-  });
-}
-
-function verifyRules() {
-  if (rules.length === 0) {
-    showNotification('Aucune règle à vérifier', true);
-    return;
-  }
-  
-  google.script.run
-    .withSuccessHandler(response => {
-      if (response.success) {
-        showNotification('Toutes les règles sont valides');
-      } else {
-        showNotification(response.message, true);
-      }
-    })
-    .withFailureHandler(error => {
-      showNotification('Erreur lors de la vérification: ' + error, true);
-    })
-    .verifyRules(rules);
-}
-
-function saveRules() {
-  if (rules.length === 0) {
-    showNotification('Aucune règle à enregistrer', true);
-    return;
-  }
-  
-  google.script.run
-    .withSuccessHandler(response => {
-      if (response.success) {
-        showNotification('Règles enregistrées avec succès');
-        rules = []; // Clear rules after successful save
-        updatePreviewTable();
-      } else {
-        showNotification(response.message, true);
-      }
-    })
-    .withFailureHandler(error => {
-      showNotification('Erreur lors de l\'enregistrement: ' + error, true);
-    })
-    .saveData(rules);
 }
 </script>
