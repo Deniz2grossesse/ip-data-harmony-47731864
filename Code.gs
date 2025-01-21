@@ -44,15 +44,32 @@ function checkForDuplicates(data) {
       const row = existingData[i];
       if (row[0] === "" && row[1] === "" && row[2] === "" && row[3] === "") continue;
       
+      // Vérification exacte (doublon complet)
       if (row[0] === newRule.sourceIp && 
           row[1] === newRule.destinationIp && 
           row[2] === newRule.protocol && 
           row[3] === newRule.port) {
-        return { isDuplicate: true, lineNumber: i + 11 };
+        return { 
+          isDuplicate: true, 
+          lineNumber: i + 11,
+          message: `Doublon trouvé en ligne ${i + 11}`
+        };
+      }
+      
+      // Vérification pour même source IP, protocole, port mais destination IP différente
+      if (row[0] === newRule.sourceIp && 
+          row[2] === newRule.protocol && 
+          row[3] === newRule.port && 
+          row[1] !== newRule.destinationIp) {
+        return { 
+          isDuplicate: true, 
+          lineNumber: i + 11,
+          message: `Règle similaire trouvée en ligne ${i + 11} avec une IP destination différente (${row[1]})`
+        };
       }
     }
   }
-  return { isDuplicate: false, lineNumber: null };
+  return { isDuplicate: false, lineNumber: null, message: null };
 }
 
 function saveData(data) {
@@ -61,7 +78,7 @@ function saveData(data) {
     if (duplicateCheck.isDuplicate) {
       return { 
         success: false, 
-        message: `Saisie impossible : doublon trouvé en ligne ${duplicateCheck.lineNumber}`,
+        message: duplicateCheck.message,
         isDuplicate: true,
         lineNumber: duplicateCheck.lineNumber
       };
