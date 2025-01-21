@@ -1,7 +1,13 @@
 import React, { useState } from 'react';
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { Select } from "./ui/select";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
 import { toast } from "./ui/use-toast";
 
 const NetworkManager = () => {
@@ -64,7 +70,6 @@ const NetworkManager = () => {
       return;
     }
 
-    // Here you would handle the data submission
     toast({
       title: "Succès",
       description: "Données enregistrées avec succès"
@@ -109,18 +114,15 @@ const NetworkManager = () => {
 
         <div>
           <label className="block text-sm font-medium mb-2">Protocole</label>
-          <Select
-            value={protocol}
-            onValueChange={setProtocol}
-          >
-            <Select.Trigger>
-              <Select.Value placeholder="Sélectionnez un protocole" />
-            </Select.Trigger>
-            <Select.Content>
-              <Select.Item value="TCP">TCP</Select.Item>
-              <Select.Item value="UDP">UDP</Select.Item>
-              <Select.Item value="ICMP">ICMP</Select.Item>
-            </Select.Content>
+          <Select value={protocol} onValueChange={setProtocol}>
+            <SelectTrigger>
+              <SelectValue placeholder="Sélectionnez un protocole" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="TCP">TCP</SelectItem>
+              <SelectItem value="UDP">UDP</SelectItem>
+              <SelectItem value="ICMP">ICMP</SelectItem>
+            </SelectContent>
           </Select>
         </div>
 
