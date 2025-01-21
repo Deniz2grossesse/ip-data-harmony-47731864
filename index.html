@@ -431,6 +431,8 @@
                     document.getElementById('duplicatesContainer').classList.remove('visible');
                   }
                   showNotification(response.message);
+                  // Automatically verify duplicates after successful deletion
+                  verifyDuplicates();
                 } else {
                   showNotification(response.message, true);
                 }
