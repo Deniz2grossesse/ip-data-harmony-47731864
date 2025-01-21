@@ -30,31 +30,6 @@ function validatePort(port) {
   return !isNaN(portNum) && portNum >= 1 && portNum <= 65000;
 }
 
-// Gestion des doublons
-function checkForDuplicates(data) {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-  const lastRow = sheet.getLastRow();
-  const existingData = sheet.getRange(11, 1, Math.max(lastRow - 10, 0), 4).getValues();
-  
-  for (let newRule of data) {
-    for (let i = 0; i < existingData.length; i++) {
-      const row = existingData[i];
-      if (!row[0] && !row[1] && !row[2] && !row[3]) continue;
-      
-      if (row[0] === newRule.sourceIp && 
-          row[1] === newRule.destinationIp && 
-          row[2] === newRule.protocol) {
-        return { 
-          isDuplicate: true, 
-          lineNumber: i + 11,
-          message: `Doublon trouvé en ligne ${i + 11}`
-        };
-      }
-    }
-  }
-  return { isDuplicate: false, lineNumber: null, message: null };
-}
-
 // Sauvegarde des données
 function saveData(data) {
   try {
@@ -69,17 +44,6 @@ function saveData(data) {
           message: "Format de données invalide"
         };
       }
-    }
-
-    // Vérification des doublons
-    const duplicateCheck = checkForDuplicates(data);
-    if (duplicateCheck.isDuplicate) {
-      return { 
-        success: false, 
-        message: duplicateCheck.message,
-        isDuplicate: true,
-        lineNumber: duplicateCheck.lineNumber
-      };
     }
 
     // Sauvegarde dans la feuille

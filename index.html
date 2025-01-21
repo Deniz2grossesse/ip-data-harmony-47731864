@@ -292,11 +292,7 @@
         
         google.script.run
           .withSuccessHandler(response => {
-            if (response.success) {
-              showNotification(response.message);
-            } else {
-              showNotification(response.message, true);
-            }
+            showNotification(response.message, !response.success);
           })
           .withFailureHandler(error => {
             showNotification('Erreur lors de la sauvegarde', true);
