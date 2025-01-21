@@ -101,3 +101,13 @@ function saveData(data) {
     return { success: false, message: "Erreur lors de l'enregistrement: " + error.toString() };
   }
 }
+
+function deleteRow(rowNumber) {
+  try {
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    sheet.deleteRow(rowNumber);
+    return { success: true, message: "Ligne supprimée avec succès" };
+  } catch (error) {
+    return { success: false, message: "Erreur lors de la suppression: " + error.toString() };
+  }
+}
