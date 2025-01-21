@@ -1,0 +1,101 @@
+<script>
+function addRule(type) {
+  const container = document.getElementById('rulesContainer');
+  const template = container.querySelector('.rule-line').cloneNode(true);
+  
+  // Clear input values
+  template.querySelectorAll('input').forEach(input => input.value = '');
+  template.querySelector('select').selectedIndex = 0;
+  
+  container.appendChild(template);
+}
+
+function showNotification(message, isError = false) {
+  const notification = document.getElementById('notification');
+  notification.textContent = message;
+  notification.classList.remove('hidden');
+  notification.classList.toggle('error', isError);
+  
+  setTimeout(() => {
+    notification.classList.add('hidden');
+  }, 3000);
+}
+
+function validateRules() {
+  const rules = [];
+  const lines = document.querySelectorAll('.rule-line');
+  
+  for (const line of lines) {
+    const sourceIp = line.querySelector('.sourceIp').value;
+    const destinationIp = line.querySelector('.destinationIp').value;
+    const protocol = line.querySelector('.protocol').value;
+    const port = parseInt(line.querySelector('.port').value);
+    
+    if (sourceIp && destinationIp && protocol && port) {
+      rules.push({ sourceIp, destinationIp, protocol, port });
+    }
+  }
+  
+  return rules;
+}
+
+function verifyRules() {
+  const rules = validateRules();
+  if (rules.length === 0) {
+    showNotification('Aucune règle à vérifier', true);
+    return;
+  }
+  
+  google.script.run
+    .withSuccessHandler(response => {
+      if (response.success) {
+        if (response.errors.length > 0) {
+          showNotification(response.errors.join('\n'), true);
+        } else {
+          showNotification('Toutes les règles sont valides');
+        }
+      } else {
+        showNotification(response.message, true);
+      }
+    })
+    .withFailureHandler(error => {
+      showNotification('Erreur lors de la vérification: ' + error, true);
+    })
+    .verifySheetData();
+}
+
+function saveRules() {
+  const rules = validateRules();
+  if (rules.length === 0) {
+    showNotification('Aucune règle à enregistrer', true);
+    return;
+  }
+  
+  google.script.run
+    .withSuccessHandler(response => {
+      if (response.success) {
+        showNotification(response.message);
+        updatePreviewTable(rules);
+      } else {
+        showNotification(response.message, true);
+      }
+    })
+    .withFailureHandler(error => {
+      showNotification('Erreur lors de l\'enregistrement: ' + error, true);
+    })
+    .saveData(rules);
+}
+
+function updatePreviewTable(rules) {
+  const tbody = document.querySelector('#previewTable tbody');
+  tbody.innerHTML = '';
+  
+  rules.forEach(rule => {
+    const row = tbody.insertRow();
+    row.insertCell().textContent = rule.sourceIp;
+    row.insertCell().textContent = rule.destinationIp;
+    row.insertCell().textContent = rule.protocol;
+    row.insertCell().textContent = rule.port;
+  });
+}
+</script>
