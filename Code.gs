@@ -139,83 +139,44 @@ function createFile() {
       }
 
       .rule-line {
-        display: flex;
-        flex-direction: column;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
         gap: 1rem;
         margin-bottom: 1rem;
         align-items: start;
       }
 
       .form-group {
-        width: 100%;
         margin-bottom: 1rem;
-        position: relative;
       }
 
-      .btn-add-container {
-        display: flex;
-        gap: 0.5rem;
-        margin-top: 0.5rem;
-      }
-
-      .btn-add {
-        padding: 0.5rem;
-        background-color: #34c759;
-        color: white;
-        border-radius: 50%;
-        width: 30px;
-        height: 30px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.2rem;
-        line-height: 1;
-        cursor: pointer;
-        border: none;
-      }
-
-      .verification-results {
+      .btn-container {
         margin-top: 2rem;
-        padding: 1rem;
-        background-color: #f5f5f7;
-        border-radius: 8px;
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
       }
 
-      .error {
-        color: #ff3b30;
-        margin-top: 0.5rem;
+      .btn {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
       }
 
-      .notification {
-        position: fixed;
-        bottom: 2rem;
-        right: 2rem;
-        padding: 1rem 2rem;
-        border-radius: 8px;
-        background-color: #34c759;
+      .btn-primary {
+        background-color: #0071e3;
         color: white;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-        transform: translateY(150%);
-        transition: transform 0.3s ease;
       }
 
-      .notification.show {
-        transform: translateY(0);
+      .btn-secondary {
+        background-color: #f5f5f7;
+        color: #1d1d1f;
       }
 
-      .notification.error {
-        background-color: #ff3b30;
-      }
-
-      .hidden {
-        display: none;
-      }
-
-      @media (max-width: 768px) {
-        .rule-line {
-          grid-template-columns: 1fr;
-        }
-      }
     </style>
   </head>
   <body>
@@ -229,6 +190,9 @@ function createFile() {
               <label>IP Source</label>
               <input type="text" class="sourceIp" required pattern="^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$" 
                      title="Format IP valide requis (ex: 192.168.1.1)">
+              <div class="btn-add-container">
+                <button type="button" class="btn-add" title="Ajouter source">+</button>
+              </div>
             </div>
             <div class="form-group">
               <label>IP Destination</label>
@@ -260,7 +224,7 @@ function createFile() {
           </div>
         </div>
 
-        <div class="form-group" style="margin-top: 2rem;">
+        <div class="btn-container">
           <button type="button" class="btn btn-primary" onclick="validateAndSave()">
             Écrire sur le fichier
           </button>
