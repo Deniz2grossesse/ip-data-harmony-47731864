@@ -14,7 +14,7 @@ function validateIpFormat(ip) {
 
 function validatePort(port) {
   const portNum = parseInt(port);
-  return portNum >= 1 && portNum <= 65535;
+  return portNum >= 1 && portNum <= 65000;
 }
 
 function duplicateField(type) {
@@ -31,11 +31,11 @@ function duplicateField(type) {
   // Créer le HTML pour la nouvelle ligne
   newRuleLine.innerHTML = `
     <div class="rule-column">
-      <input type="text" class="input-field sourceIp" placeholder="IP source" value="${type === 'source' ? '' : sourceIp}">
+      <input type="text" class="input-field sourceIp" placeholder="IP source" value="${type === 'source' ? '' : sourceIp}" oninput="validateInput(this, 'ip')">
       <button onclick="duplicateField('source')" class="add-button">+</button>
     </div>
     <div class="rule-column">
-      <input type="text" class="input-field destinationIp" placeholder="IP destination" value="${type === 'destination' ? '' : destinationIp}">
+      <input type="text" class="input-field destinationIp" placeholder="IP destination" value="${type === 'destination' ? '' : destinationIp}" oninput="validateInput(this, 'ip')">
       <button onclick="duplicateField('destination')" class="add-button">+</button>
     </div>
     <div class="rule-column">
@@ -48,7 +48,7 @@ function duplicateField(type) {
       <button onclick="duplicateField('protocol')" class="add-button">+</button>
     </div>
     <div class="rule-column">
-      <input type="number" class="input-field port" placeholder="Port" min="1" max="65535" value="${type === 'port' ? '' : port}">
+      <input type="text" class="input-field port" placeholder="Port" value="${type === 'port' ? '' : port}" oninput="validateInput(this, 'port')">
       <button onclick="duplicateField('port')" class="add-button">+</button>
     </div>
   `;
@@ -69,6 +69,27 @@ function duplicateField(type) {
   }
 }
 
+function validateInput(input, type) {
+  if (type === 'ip') {
+    if (!validateIpFormat(input.value) && input.value !== '') {
+      input.style.borderColor = 'red';
+      showNotification('Veuillez saisir une adresse IP valide (format: 0-255.0-255.0-255.0-255)', true);
+    } else {
+      input.style.borderColor = '#e2e8f0';
+    }
+  } else if (type === 'port') {
+    const value = input.value.replace(/[^0-9]/g, '');
+    input.value = value;
+    
+    if (!validatePort(value) && value !== '') {
+      input.style.borderColor = 'red';
+      showNotification('Le port doit être compris entre 1 et 65000', true);
+    } else {
+      input.style.borderColor = '#e2e8f0';
+    }
+  }
+}
+
 function showNotification(message, isError = false) {
   const notification = document.getElementById('notification');
   notification.textContent = message;
@@ -79,4 +100,19 @@ function showNotification(message, isError = false) {
     notification.classList.add('hidden');
   }, 3000);
 }
+
+// Ajouter les validations aux champs existants
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('sourceIp').addEventListener('input', function() {
+    validateInput(this, 'ip');
+  });
+  
+  document.getElementById('destinationIp').addEventListener('input', function() {
+    validateInput(this, 'ip');
+  });
+  
+  document.getElementById('port').addEventListener('input', function() {
+    validateInput(this, 'port');
+  });
+});
 </script>
