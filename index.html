@@ -285,7 +285,7 @@
         
         setTimeout(() => {
           notification.classList.add('hidden');
-        }, 3000);
+        }, 5000);
       }
 
       function saveRules() {
@@ -319,7 +319,11 @@
         
         google.script.run
           .withSuccessHandler(function(response) {
-            showNotification(response.message, !response.success);
+            if (response.isDuplicate) {
+              showNotification(`Saisie impossible : doublon trouvé en ligne ${response.lineNumber}`, true);
+            } else {
+              showNotification(response.message, !response.success);
+            }
           })
           .withFailureHandler(function(error) {
             showNotification('Erreur lors de la sauvegarde: ' + error, true);
