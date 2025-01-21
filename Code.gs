@@ -1,4 +1,3 @@
-// Configuration de l'interface utilisateur
 function doGet() {
   return HtmlService.createTemplateFromFile('index')
     .evaluate()
@@ -6,9 +5,16 @@ function doGet() {
     .setFaviconUrl('https://www.google.com/images/favicon.ico');
 }
 
-// Validations
+function showNetworkRulesUI() {
+  const html = HtmlService.createTemplateFromFile('index')
+    .evaluate()
+    .setTitle('Network Rules Manager')
+    .setWidth(1000)
+    .setHeight(600);
+  SpreadsheetApp.getUi().showModalDialog(html, 'Gestionnaire de règles réseau');
+}
+
 function validateIpFormat(ip) {
-  if (!ip) return false;
   const regex = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/;
   if (!regex.test(ip)) return false;
   
@@ -20,33 +26,16 @@ function validateIpFormat(ip) {
 }
 
 function validateProtocol(protocol) {
-  const validProtocols = ['ssh', 'https', 'ping', 'smtp'];
-  return validProtocols.includes(protocol?.toLowerCase());
+  return ['ssh', 'https', 'ping', 'smtp'].includes(protocol);
 }
 
 function validatePort(port) {
-  if (!port) return false;
   const portNum = parseInt(port);
-  return !isNaN(portNum) && portNum >= 1 && portNum <= 65000;
+  return portNum >= 1 && portNum <= 65000;
 }
 
-// Sauvegarde des données
 function saveData(data) {
   try {
-    // Validation des données
-    for (const rule of data) {
-      if (!validateIpFormat(rule.sourceIp) || 
-          !validateIpFormat(rule.destinationIp) || 
-          !validateProtocol(rule.protocol) || 
-          !validatePort(rule.port)) {
-        return { 
-          success: false, 
-          message: "Format de données invalide"
-        };
-      }
-    }
-
-    // Sauvegarde dans la feuille
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
     let nextRow = 11;
     
@@ -55,28 +44,20 @@ function saveData(data) {
     }
     
     if (nextRow > 150) {
-      return { 
-        success: false, 
-        message: "Impossible d'écrire après la ligne 150" 
-      };
+      return { success: false, message: "Impossible d'écrire après la ligne 150" };
     }
     
     data.forEach(row => {
       if (nextRow <= 150) {
-        const rowData = [row.sourceIp, row.destinationIp, row.protocol, row.port];
-        sheet.getRange(nextRow, 1, 1, 4).setValues([rowData]);
+        sheet.getRange(nextRow, 1).setValue(row.sourceIp);
+        sheet.getRange(nextRow, 2).setValue(row.destinationIp);
+        sheet.getRange(nextRow, 3).setValue(row.protocol);
+        sheet.getRange(nextRow, 4).setValue(row.port);
         nextRow++;
       }
     });
-    
-    return { 
-      success: true, 
-      message: "Données enregistrées avec succès" 
-    };
+    return { success: true, message: "Données enregistrées avec succès" };
   } catch (error) {
-    return { 
-      success: false, 
-      message: "Erreur lors de l'enregistrement: " + error.toString() 
-    };
+    return { success: false, message: "Erreur lors de l'enregistrement: " + error.toString() };
   }
 }
