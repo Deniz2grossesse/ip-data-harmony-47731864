@@ -166,10 +166,10 @@
         const newRuleLine = document.createElement('div');
         newRuleLine.className = 'rule-line';
         
-        const sourceIp = document.getElementById('sourceIp').value;
-        const destinationIp = document.getElementById('destinationIp').value;
-        const protocol = document.getElementById('protocol').value;
-        const port = document.getElementById('port').value;
+        const sourceIp = document.querySelector('#sourceIp, .sourceIp:last-of-type').value;
+        const destinationIp = document.querySelector('#destinationIp, .destinationIp:last-of-type').value;
+        const protocol = document.querySelector('#protocol, .protocol:last-of-type').value;
+        const port = document.querySelector('#port, .port:last-of-type').value;
 
         newRuleLine.innerHTML = `
           <div class="rule-column">
@@ -195,8 +195,8 @@
           </div>
         `;
 
-        const lastRuleLine = document.querySelector('.rule-line:last-child');
-        lastRuleLine.parentNode.insertBefore(newRuleLine, lastRuleLine.nextSibling);
+        const saveButton = document.querySelector('.save-button');
+        container.insertBefore(newRuleLine, saveButton);
 
         if (type === 'source') {
           newRuleLine.querySelector('.sourceIp').focus();
