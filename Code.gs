@@ -6,15 +6,6 @@ function doGet() {
     .setFaviconUrl('https://www.google.com/images/favicon.ico');
 }
 
-function showNetworkRulesUI() {
-  const html = HtmlService.createTemplateFromFile('index')
-    .evaluate()
-    .setTitle('Network Rules Manager')
-    .setWidth(1000)
-    .setHeight(600);
-  SpreadsheetApp.getUi().showModalDialog(html, 'Gestionnaire de règles réseau');
-}
-
 // Validations
 function validateIpFormat(ip) {
   if (!ip) return false;

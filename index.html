@@ -6,7 +6,177 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Network Rules Manager</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <?!= include('Stylesheet'); ?>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        padding: 40px;
+        background: linear-gradient(109.6deg, rgba(223,234,247,1) 11.2%, rgba(244,248,252,1) 91.1%);
+        min-height: 100vh;
+      }
+
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 3rem;
+        border-radius: 20px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        backdrop-filter: blur(10px);
+      }
+
+      .rule-line {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr) auto;
+        gap: 24px;
+        margin-bottom: 32px;
+        align-items: start;
+      }
+
+      .rule-column {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .input-field {
+        width: 100%;
+        padding: 14px 20px;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        font-size: 16px;
+        transition: all 0.2s ease;
+        background: white;
+      }
+
+      .input-field:focus {
+        outline: none;
+        border-color: #94a3b8;
+        box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.1);
+      }
+
+      .add-button {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: 2px solid #3b82f6;
+        background: white;
+        color: #3b82f6;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 24px;
+        margin: 8px auto;
+        transition: all 0.2s ease;
+      }
+
+      .add-button:hover {
+        background: #3b82f6;
+        color: white;
+        transform: scale(1.1);
+      }
+
+      .delete-button {
+        background-color: #ef4444;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: all 0.2s ease;
+      }
+
+      .delete-button:hover {
+        background-color: #dc2626;
+      }
+
+      .save-button {
+        display: block;
+        margin: 32px auto 0;
+        padding: 16px 32px;
+        background-color: #3b82f6;
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-weight: 500;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .save-button:hover {
+        background-color: #2563eb;
+        transform: translateY(-1px);
+      }
+
+      .save-button:active {
+        transform: translateY(0);
+      }
+
+      .notification {
+        position: fixed;
+        bottom: 32px;
+        right: 32px;
+        padding: 16px 32px;
+        border-radius: 12px;
+        color: white;
+        font-weight: 500;
+        font-size: 16px;
+        opacity: 0;
+        transform: translateY(10px);
+        transition: all 0.3s ease;
+        z-index: 1000;
+      }
+
+      .notification.hidden {
+        display: none;
+      }
+
+      .notification:not(.hidden) {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .notification.error {
+        background-color: #ef4444;
+      }
+
+      .notification:not(.error) {
+        background-color: #10b981;
+      }
+
+      @media (max-width: 1024px) {
+        .container {
+          padding: 2rem;
+          max-width: 100%;
+        }
+        
+        .rule-line {
+          gap: 16px;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .rule-line {
+          grid-template-columns: 1fr;
+        }
+        
+        body {
+          padding: 20px;
+        }
+        
+        .container {
+          padding: 1.5rem;
+        }
+      }
+    </style>
   </head>
   <body>
     <div class="container">
@@ -39,6 +209,100 @@
     
     <div id="notification" class="notification hidden"></div>
 
-    <?!= include('JavaScript'); ?>
+    <script>
+      function validateInput(input, type) {
+        if (type === 'ip') {
+          const regex = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/;
+          if (!regex.test(input.value)) {
+            input.style.borderColor = '#ef4444';
+            return false;
+          }
+          
+          const parts = input.value.split('.');
+          const isValid = parts.every(part => {
+            const num = parseInt(part);
+            return num >= 0 && num <= 255;
+          });
+          
+          input.style.borderColor = isValid ? '#e2e8f0' : '#ef4444';
+          return isValid;
+        } else if (type === 'port') {
+          const portNum = parseInt(input.value);
+          const isValid = !isNaN(portNum) && portNum >= 1 && portNum <= 65000;
+          input.style.borderColor = isValid ? '#e2e8f0' : '#ef4444';
+          return isValid;
+        }
+        return true;
+      }
+
+      function duplicateField(type) {
+        const ruleLine = document.querySelector('.rule-line');
+        const newRuleLine = ruleLine.cloneNode(true);
+        
+        // Reset input values
+        const inputs = newRuleLine.querySelectorAll('input');
+        inputs.forEach(input => input.value = '');
+        
+        // Add the new line after the last one
+        ruleLine.parentNode.insertBefore(newRuleLine, document.querySelector('.save-button'));
+      }
+
+      function deleteLine(button) {
+        const lines = document.querySelectorAll('.rule-line');
+        if (lines.length > 1) {
+          button.closest('.rule-line').remove();
+        }
+      }
+
+      function showNotification(message, isError = false) {
+        const notification = document.getElementById('notification');
+        notification.textContent = message;
+        notification.classList.toggle('error', isError);
+        notification.classList.remove('hidden');
+        
+        setTimeout(() => {
+          notification.classList.add('hidden');
+        }, 3000);
+      }
+
+      function saveRules() {
+        const rules = [];
+        const ruleLines = document.querySelectorAll('.rule-line');
+        
+        for (const line of ruleLines) {
+          const sourceIp = line.querySelector('#sourceIp').value;
+          const destinationIp = line.querySelector('#destinationIp').value;
+          const protocol = line.querySelector('#protocol').value;
+          const port = line.querySelector('#port').value;
+          
+          if (!validateInput({ value: sourceIp }, 'ip') || 
+              !validateInput({ value: destinationIp }, 'ip') || 
+              !validateInput({ value: port }, 'port')) {
+            showNotification('Veuillez corriger les erreurs de format', true);
+            return;
+          }
+          
+          rules.push({
+            sourceIp,
+            destinationIp,
+            protocol,
+            port
+          });
+        }
+        
+        google.script.run
+          .withSuccessHandler(response => {
+            if (response.success) {
+              showNotification(response.message);
+            } else {
+              showNotification(response.message, true);
+            }
+          })
+          .withFailureHandler(error => {
+            showNotification('Erreur lors de la sauvegarde', true);
+          })
+          .saveData(rules);
+      }
+    </script>
   </body>
 </html>
