@@ -37,6 +37,12 @@
         margin-bottom: 24px;
       }
 
+      .rule-column {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
       .input-field {
         width: 100%;
         padding: 10px 16px;
@@ -51,6 +57,28 @@
         outline: none;
         border-color: #94a3b8;
         box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.1);
+      }
+
+      .add-button {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        border: 2px solid #3b82f6;
+        background: white;
+        color: #3b82f6;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 20px;
+        margin: 4px auto;
+        transition: all 0.2s ease;
+      }
+
+      .add-button:hover {
+        background: #3b82f6;
+        color: white;
+        transform: scale(1.1);
       }
 
       .button-row {
@@ -180,15 +208,27 @@
   <body>
     <div class="container">
       <div class="rule-line">
-        <input type="text" id="sourceIp" placeholder="IP source" class="input-field">
-        <input type="text" id="destinationIp" placeholder="IP destination" class="input-field">
-        <select id="protocol" class="input-field">
-          <option value="ssh">SSH</option>
-          <option value="https">HTTPS</option>
-          <option value="ping">PING</option>
-          <option value="smtp">SMTP</option>
-        </select>
-        <input type="number" id="port" placeholder="Port" class="input-field" min="1" max="65535">
+        <div class="rule-column">
+          <input type="text" id="sourceIp" placeholder="IP source" class="input-field">
+          <button onclick="duplicateField('source')" class="add-button">+</button>
+        </div>
+        <div class="rule-column">
+          <input type="text" id="destinationIp" placeholder="IP destination" class="input-field">
+          <button onclick="duplicateField('destination')" class="add-button">+</button>
+        </div>
+        <div class="rule-column">
+          <select id="protocol" class="input-field">
+            <option value="ssh">SSH</option>
+            <option value="https">HTTPS</option>
+            <option value="ping">PING</option>
+            <option value="smtp">SMTP</option>
+          </select>
+          <button onclick="duplicateField('protocol')" class="add-button">+</button>
+        </div>
+        <div class="rule-column">
+          <input type="number" id="port" placeholder="Port" class="input-field" min="1" max="65535">
+          <button onclick="duplicateField('port')" class="add-button">+</button>
+        </div>
       </div>
       
       <div class="button-row">

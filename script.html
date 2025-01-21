@@ -17,6 +17,40 @@ function validatePort(port) {
   return portNum >= 1 && portNum <= 65535;
 }
 
+function duplicateField(type) {
+  const sourceIp = document.getElementById('sourceIp').value;
+  const destinationIp = document.getElementById('destinationIp').value;
+  const protocol = document.getElementById('protocol').value;
+  const port = document.getElementById('port').value;
+
+  // Validation de base
+  if (!sourceIp) {
+    showNotification('Veuillez d\'abord remplir l\'IP source', true);
+    return;
+  }
+  if (!validateIpFormat(sourceIp)) {
+    showNotification('Format IP source invalide', true);
+    return;
+  }
+
+  // Créer une nouvelle règle basée sur le type
+  const newRule = {
+    sourceIp: sourceIp,
+    destinationIp: type === 'destination' ? '' : destinationIp,
+    protocol: protocol,
+    port: port
+  };
+
+  rules.push(newRule);
+  updatePreviewTable();
+  
+  // Mettre à jour les champs selon le type
+  if (type === 'destination') {
+    document.getElementById('destinationIp').value = '';
+    document.getElementById('destinationIp').focus();
+  }
+}
+
 function addRule() {
   const sourceIp = document.getElementById('sourceIp').value;
   const destinationIp = document.getElementById('destinationIp').value;
