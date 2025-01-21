@@ -4,9 +4,7 @@
     <base target="_top">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-      <?!= include('styles'); ?>
-    </style>
+    <link rel="stylesheet" href="<?!= include('styles'); ?>">
   </head>
   <body>
     <div class="container">
@@ -76,8 +74,6 @@
     
     <div id="notification" class="notification hidden"></div>
     
-    <script>
-      <?!= include('script'); ?>
-    </script>
+    <script src="<?!= include('script'); ?>"></script>
   </body>
 </html>
