@@ -12,18 +12,92 @@ function include(filename) {
 function saveData(data) {
   try {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    let nextRow = 11;
+    
+    // Trouver la prochaine ligne disponible
+    while (nextRow <= 150 && sheet.getRange(nextRow, 1).getValue() !== "") {
+      nextRow++;
+    }
+    
+    if (nextRow > 150) {
+      return { success: false, message: "Impossible d'écrire après la ligne 150" };
+    }
+    
     data.forEach(row => {
-      sheet.appendRow([
-        row.sourceIp,
-        row.destinationIp,
-        row.protocol,
-        row.port
-      ]);
+      if (nextRow <= 150) {
+        sheet.getRange(nextRow, 1).setValue(row.sourceIp);
+        sheet.getRange(nextRow, 2).setValue(row.destinationIp);
+        sheet.getRange(nextRow, 3).setValue(row.protocol);
+        sheet.getRange(nextRow, 4).setValue(row.port);
+        nextRow++;
+      }
     });
     return { success: true, message: "Données enregistrées avec succès" };
   } catch (error) {
     return { success: false, message: "Erreur lors de l'enregistrement: " + error.toString() };
   }
+}
+
+function verifySheetData() {
+  try {
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    const data = [];
+    const errors = [];
+    
+    for (let row = 11; row <= 150; row++) {
+      const sourceIp = sheet.getRange(row, 1).getValue();
+      if (!sourceIp) continue;
+      
+      const destinationIp = sheet.getRange(row, 2).getValue();
+      const protocol = sheet.getRange(row, 3).getValue();
+      const port = sheet.getRange(row, 4).getValue();
+      
+      const rowData = {
+        row: row,
+        sourceIp: sourceIp,
+        destinationIp: destinationIp,
+        protocol: protocol,
+        port: port
+      };
+      
+      if (!validateIpFormat(sourceIp)) {
+        errors.push(`Ligne ${row}: Format IP source invalide`);
+      }
+      if (!validateIpFormat(destinationIp)) {
+        errors.push(`Ligne ${row}: Format IP destination invalide`);
+      }
+      if (!['ssh', 'https', 'ping', 'smtp'].includes(protocol)) {
+        errors.push(`Ligne ${row}: Protocole invalide`);
+      }
+      if (port < 1 || port > 65000) {
+        errors.push(`Ligne ${row}: Port invalide`);
+      }
+      
+      data.push(rowData);
+    }
+    
+    return {
+      success: true,
+      data: data,
+      errors: errors
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: "Erreur lors de la vérification: " + error.toString()
+    };
+  }
+}
+
+function validateIpFormat(ip) {
+  const regex = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/;
+  if (!regex.test(ip)) return false;
+  
+  const parts = ip.split('.');
+  return parts.every(part => {
+    const num = parseInt(part);
+    return num >= 0 && num <= 255;
+  });
 }
 
 function createFile() {
@@ -64,8 +138,16 @@ function createFile() {
         text-align: center;
       }
 
+      .rule-line {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr) auto;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        align-items: start;
+      }
+
       .form-group {
-        margin-bottom: 1.5rem;
+        margin-bottom: 1rem;
       }
 
       label {
@@ -90,11 +172,8 @@ function createFile() {
         box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.1);
       }
 
-      .btn-primary {
-        width: 100%;
+      .btn {
         padding: 0.75rem 1.5rem;
-        background-color: #0071e3;
-        color: white;
         border: none;
         border-radius: 8px;
         font-size: 1rem;
@@ -103,67 +182,40 @@ function createFile() {
         transition: background-color 0.2s ease;
       }
 
-      .btn-primary:hover {
-        background-color: #0077ed;
+      .btn-primary {
+        background-color: #0071e3;
+        color: white;
       }
 
       .btn-secondary {
-        width: 100%;
-        padding: 0.75rem 1.5rem;
         background-color: #f5f5f7;
         color: #1d1d1f;
-        border: none;
-        border-radius: 8px;
-        font-size: 1rem;
-        font-weight: 500;
-        cursor: pointer;
-        margin-bottom: 1rem;
-        transition: background-color 0.2s ease;
       }
 
-      .btn-secondary:hover {
-        background-color: #e8e8ed;
+      .btn-add {
+        padding: 0.5rem;
+        background-color: #34c759;
+        color: white;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        line-height: 1;
       }
 
-      .rule-group {
-        padding: 1rem;
-        margin-bottom: 1rem;
-        border-radius: 8px;
-        background-color: #f5f5f7;
-      }
-
-      .destination-group {
-        padding: 1rem;
-        margin: 0.5rem 0;
-        border-radius: 8px;
-        background-color: white;
-        border: 1px solid #d2d2d7;
-      }
-
-      .port-protocol-group {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 1rem;
-        margin-top: 0.5rem;
-      }
-
-      .preview-table {
-        width: 100%;
+      .verification-results {
         margin-top: 2rem;
-        border-collapse: collapse;
-        overflow-x: auto;
-      }
-
-      .preview-table th,
-      .preview-table td {
-        padding: 0.75rem;
-        text-align: left;
-        border-bottom: 1px solid #d2d2d7;
-      }
-
-      .preview-table th {
+        padding: 1rem;
         background-color: #f5f5f7;
-        font-weight: 500;
+        border-radius: 8px;
+      }
+
+      .error {
+        color: #ff3b30;
+        margin-top: 0.5rem;
       }
 
       .notification {
@@ -192,15 +244,7 @@ function createFile() {
       }
 
       @media (max-width: 768px) {
-        body {
-          padding: 1rem;
-        }
-        
-        .container {
-          padding: 1rem;
-        }
-
-        .port-protocol-group {
+        .rule-line {
           grid-template-columns: 1fr;
         }
       }
@@ -212,74 +256,51 @@ function createFile() {
       
       <form id="networkForm">
         <div id="rulesContainer">
-          <div class="rule-group">
+          <div class="rule-line">
             <div class="form-group">
               <label>IP Source</label>
               <input type="text" class="sourceIp" required pattern="^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$" 
                      title="Format IP valide requis (ex: 192.168.1.1)">
             </div>
-
-            <div class="destinations-container">
-              <div class="destination-group">
-                <div class="form-group">
-                  <label>IP Destination</label>
-                  <input type="text" class="destinationIp" required pattern="^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$"
-                         title="Format IP valide requis (ex: 192.168.1.1)">
-                </div>
-                
-                <div class="port-protocol-pairs">
-                  <div class="port-protocol-group">
-                    <div class="form-group">
-                      <label>Protocole</label>
-                      <select class="protocol" required>
-                        <option value="ssh">SSH</option>
-                        <option value="https">HTTPS</option>
-                        <option value="ping">PING</option>
-                        <option value="smtp">SMTP</option>
-                      </select>
-                    </div>
-
-                    <div class="form-group">
-                      <label>Port</label>
-                      <input type="number" class="port" required min="1" max="65535">
-                    </div>
-                  </div>
-                </div>
-
-                <button type="button" class="btn-secondary add-port-protocol">
-                  Ajouter Protocole/Port
-                </button>
-              </div>
+            <div class="form-group">
+              <label>IP Destination</label>
+              <input type="text" class="destinationIp" required pattern="^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$"
+                     title="Format IP valide requis (ex: 192.168.1.1)">
             </div>
-
-            <button type="button" class="btn-secondary add-destination">
-              Ajouter une destination
-            </button>
+            <div class="form-group">
+              <label>Protocole</label>
+              <select class="protocol" required>
+                <option value="ssh">SSH</option>
+                <option value="https">HTTPS</option>
+                <option value="ping">PING</option>
+                <option value="smtp">SMTP</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Port</label>
+              <input type="number" class="port" required min="1" max="65000">
+            </div>
+            <div class="form-group" style="display: flex; gap: 0.5rem;">
+              <button type="button" class="btn-add add-destination" title="Ajouter destination">+</button>
+              <button type="button" class="btn-add add-protocol" title="Ajouter protocole">+</button>
+              <button type="button" class="btn-add add-port" title="Ajouter port">+</button>
+            </div>
           </div>
         </div>
 
-        <button type="button" class="btn-secondary" id="addRule">
-          Ajouter une nouvelle règle
-        </button>
-
-        <div class="preview-container">
-          <h2>Aperçu des règles</h2>
-          <table id="previewTable" class="preview-table">
-            <thead>
-              <tr>
-                <th>IP Source</th>
-                <th>IP Destination</th>
-                <th>Protocole</th>
-                <th>Port</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
+        <div class="form-group" style="margin-top: 2rem;">
+          <button type="button" class="btn btn-primary" onclick="validateAndSave()">
+            Écrire sur le fichier
+          </button>
+          <button type="button" class="btn btn-secondary" onclick="verifyCoherence()">
+            Vérifier la cohérence
+          </button>
+          <button type="button" class="btn btn-secondary" onclick="showEntries()">
+            Vérifier champs saisis
+          </button>
         </div>
 
-        <button type="button" onclick="validateAndSave()" class="btn-primary">
-          Enregistrer
-        </button>
+        <div id="verificationResults" class="verification-results hidden"></div>
       </form>
     </div>
 
@@ -312,134 +333,51 @@ function createFile() {
         }, 3000);
       }
 
-      function createPortProtocolGroup() {
-        const group = document.createElement('div');
-        group.className = 'port-protocol-group';
-        group.innerHTML = \`
+      function createRuleLine(sourceIp = '', destinationIp = '', protocol = 'ssh', port = '') {
+        const line = document.createElement('div');
+        line.className = 'rule-line';
+        line.innerHTML = \`
+          <div class="form-group">
+            <label>IP Source</label>
+            <input type="text" class="sourceIp" required pattern="^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$" 
+                   title="Format IP valide requis (ex: 192.168.1.1)" value="\${sourceIp}">
+          </div>
+          <div class="form-group">
+            <label>IP Destination</label>
+            <input type="text" class="destinationIp" required pattern="^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$"
+                   title="Format IP valide requis (ex: 192.168.1.1)" value="\${destinationIp}">
+          </div>
           <div class="form-group">
             <label>Protocole</label>
             <select class="protocol" required>
-              <option value="ssh">SSH</option>
-              <option value="https">HTTPS</option>
-              <option value="ping">PING</option>
-              <option value="smtp">SMTP</option>
+              <option value="ssh" \${protocol === 'ssh' ? 'selected' : ''}>SSH</option>
+              <option value="https" \${protocol === 'https' ? 'selected' : ''}>HTTPS</option>
+              <option value="ping" \${protocol === 'ping' ? 'selected' : ''}>PING</option>
+              <option value="smtp" \${protocol === 'smtp' ? 'selected' : ''}>SMTP</option>
             </select>
           </div>
           <div class="form-group">
             <label>Port</label>
-            <input type="number" class="port" required min="1" max="65535">
+            <input type="number" class="port" required min="1" max="65000" value="\${port}">
+          </div>
+          <div class="form-group" style="display: flex; gap: 0.5rem;">
+            <button type="button" class="btn-add add-destination" title="Ajouter destination">+</button>
+            <button type="button" class="btn-add add-protocol" title="Ajouter protocole">+</button>
+            <button type="button" class="btn-add add-port" title="Ajouter port">+</button>
           </div>
         \`;
-        return group;
-      }
-
-      function createDestinationGroup() {
-        const group = document.createElement('div');
-        group.className = 'destination-group';
-        group.innerHTML = \`
-          <div class="form-group">
-            <label>IP Destination</label>
-            <input type="text" class="destinationIp" required pattern="^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$">
-          </div>
-          <div class="port-protocol-pairs">
-            <div class="port-protocol-group">
-              <div class="form-group">
-                <label>Protocole</label>
-                <select class="protocol" required>
-                  <option value="ssh">SSH</option>
-                  <option value="https">HTTPS</option>
-                  <option value="ping">PING</option>
-                  <option value="smtp">SMTP</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label>Port</label>
-                <input type="number" class="port" required min="1" max="65535">
-              </div>
-            </div>
-          </div>
-          <button type="button" class="btn-secondary add-port-protocol">
-            Ajouter Protocole/Port
-          </button>
-        \`;
-        return group;
-      }
-
-      function createRuleGroup() {
-        const group = document.createElement('div');
-        group.className = 'rule-group';
-        group.innerHTML = \`
-          <div class="form-group">
-            <label>IP Source</label>
-            <input type="text" class="sourceIp" required pattern="^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$">
-          </div>
-          <div class="destinations-container">
-            <div class="destination-group">
-              <div class="form-group">
-                <label>IP Destination</label>
-                <input type="text" class="destinationIp" required pattern="^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$">
-              </div>
-              <div class="port-protocol-pairs">
-                <div class="port-protocol-group">
-                  <div class="form-group">
-                    <label>Protocole</label>
-                    <select class="protocol" required>
-                      <option value="ssh">SSH</option>
-                      <option value="https">HTTPS</option>
-                      <option value="ping">PING</option>
-                      <option value="smtp">SMTP</option>
-                    </select>
-                  </div>
-                  <div class="form-group">
-                    <label>Port</label>
-                    <input type="number" class="port" required min="1" max="65535">
-                  </div>
-                </div>
-              </div>
-              <button type="button" class="btn-secondary add-port-protocol">
-                Ajouter Protocole/Port
-              </button>
-            </div>
-          </div>
-          <button type="button" class="btn-secondary add-destination">
-            Ajouter une destination
-          </button>
-        \`;
-        return group;
-      }
-
-      function updatePreviewTable() {
-        const tbody = document.querySelector('#previewTable tbody');
-        tbody.innerHTML = '';
-        
-        document.querySelectorAll('.rule-group').forEach(ruleGroup => {
-          const sourceIp = ruleGroup.querySelector('.sourceIp').value;
-          
-          ruleGroup.querySelectorAll('.destination-group').forEach(destGroup => {
-            const destinationIp = destGroup.querySelector('.destinationIp').value;
-            
-            destGroup.querySelectorAll('.port-protocol-group').forEach(portProtocolGroup => {
-              const protocol = portProtocolGroup.querySelector('.protocol').value;
-              const port = portProtocolGroup.querySelector('.port').value;
-              
-              if (sourceIp && destinationIp && protocol && port) {
-                const row = tbody.insertRow();
-                row.insertCell().textContent = sourceIp;
-                row.insertCell().textContent = destinationIp;
-                row.insertCell().textContent = protocol;
-                row.insertCell().textContent = port;
-              }
-            });
-          });
-        });
+        return line;
       }
 
       function validateAndSave() {
         const rules = [];
         let hasError = false;
 
-        document.querySelectorAll('.rule-group').forEach(ruleGroup => {
-          const sourceIp = ruleGroup.querySelector('.sourceIp').value;
+        document.querySelectorAll('.rule-line').forEach(line => {
+          const sourceIp = line.querySelector('.sourceIp').value;
+          const destinationIp = line.querySelector('.destinationIp').value;
+          const protocol = line.querySelector('.protocol').value;
+          const port = line.querySelector('.port').value;
           
           if (!validateIpAddress(sourceIp)) {
             showNotification("Format d'adresse IP source invalide", true);
@@ -447,32 +385,23 @@ function createFile() {
             return;
           }
           
-          ruleGroup.querySelectorAll('.destination-group').forEach(destGroup => {
-            const destinationIp = destGroup.querySelector('.destinationIp').value;
-            
-            if (!validateIpAddress(destinationIp)) {
-              showNotification("Format d'adresse IP destination invalide", true);
-              hasError = true;
-              return;
-            }
-            
-            destGroup.querySelectorAll('.port-protocol-group').forEach(portProtocolGroup => {
-              const protocol = portProtocolGroup.querySelector('.protocol').value;
-              const port = portProtocolGroup.querySelector('.port').value;
-              
-              if (port < 1 || port > 65535) {
-                showNotification("Le port doit être entre 1 et 65535", true);
-                hasError = true;
-                return;
-              }
-              
-              rules.push({
-                sourceIp,
-                destinationIp,
-                protocol,
-                port
-              });
-            });
+          if (!validateIpAddress(destinationIp)) {
+            showNotification("Format d'adresse IP destination invalide", true);
+            hasError = true;
+            return;
+          }
+          
+          if (port < 1 || port > 65000) {
+            showNotification("Le port doit être entre 1 et 65000", true);
+            hasError = true;
+            return;
+          }
+          
+          rules.push({
+            sourceIp,
+            destinationIp,
+            protocol,
+            port
           });
         });
         
@@ -483,11 +412,9 @@ function createFile() {
             if (response.success) {
               showNotification(response.message);
               document.getElementById('networkForm').reset();
-              document.querySelector('#previewTable tbody').innerHTML = '';
-              
               const rulesContainer = document.getElementById('rulesContainer');
               rulesContainer.innerHTML = '';
-              rulesContainer.appendChild(createRuleGroup());
+              rulesContainer.appendChild(createRuleLine());
             } else {
               showNotification(response.message, true);
             }
@@ -498,24 +425,82 @@ function createFile() {
           .saveData(rules);
       }
 
-      document.addEventListener('click', function(e) {
-        if (e.target.classList.contains('add-port-protocol')) {
-          const portProtocolPairs = e.target.previousElementSibling;
-          portProtocolPairs.appendChild(createPortProtocolGroup());
-        } else if (e.target.classList.contains('add-destination')) {
-          const destinationsContainer = e.target.previousElementSibling;
-          destinationsContainer.appendChild(createDestinationGroup());
-        } else if (e.target.id === 'addRule') {
-          document.getElementById('rulesContainer').appendChild(createRuleGroup());
-        }
-      });
+      function verifyCoherence() {
+        google.script.run
+          .withSuccessHandler(function(response) {
+            const results = document.getElementById('verificationResults');
+            results.innerHTML = '';
+            results.classList.remove('hidden');
+            
+            if (response.success) {
+              if (response.errors.length > 0) {
+                const errorsList = response.errors.map(error => `<div class="error">${error}</div>`).join('');
+                results.innerHTML = \`<h3>Erreurs trouvées:</h3>\${errorsList}\`;
+              } else {
+                results.innerHTML = '<div>Toutes les données sont cohérentes</div>';
+              }
+            } else {
+              results.innerHTML = \`<div class="error">${response.message}</div>\`;
+            }
+          })
+          .withFailureHandler(function(error) {
+            showNotification("Erreur lors de la vérification: " + error, true);
+          })
+          .verifySheetData();
+      }
 
-      document.addEventListener('input', function(e) {
-        if (e.target.classList.contains('sourceIp') ||
-            e.target.classList.contains('destinationIp') ||
-            e.target.classList.contains('protocol') ||
-            e.target.classList.contains('port')) {
-          updatePreviewTable();
+      function showEntries() {
+        const rules = [];
+        document.querySelectorAll('.rule-line').forEach(line => {
+          const sourceIp = line.querySelector('.sourceIp').value;
+          const destinationIp = line.querySelector('.destinationIp').value;
+          const protocol = line.querySelector('.protocol').value;
+          const port = line.querySelector('.port').value;
+          
+          if (sourceIp && destinationIp && protocol && port) {
+            rules.push({ sourceIp, destinationIp, protocol, port });
+          }
+        });
+        
+        const results = document.getElementById('verificationResults');
+        results.innerHTML = '';
+        results.classList.remove('hidden');
+        
+        if (rules.length > 0) {
+          const rulesList = rules.map(rule => 
+            \`<div>Source: \${rule.sourceIp} | Destination: \${rule.destinationIp} | Protocole: \${rule.protocol} | Port: \${rule.port}</div>\`
+          ).join('');
+          results.innerHTML = \`<h3>Entrées saisies:</h3>\${rulesList}\`;
+        } else {
+          results.innerHTML = '<div>Aucune entrée valide saisie</div>';
+        }
+      }
+
+      document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('add-destination')) {
+          const currentLine = e.target.closest('.rule-line');
+          const sourceIp = currentLine.querySelector('.sourceIp').value;
+          const port = currentLine.querySelector('.port').value;
+          const protocol = currentLine.querySelector('.protocol').value;
+          
+          const newLine = createRuleLine(sourceIp, '', protocol, port);
+          currentLine.after(newLine);
+        } else if (e.target.classList.contains('add-protocol')) {
+          const currentLine = e.target.closest('.rule-line');
+          const sourceIp = currentLine.querySelector('.sourceIp').value;
+          const destinationIp = currentLine.querySelector('.destinationIp').value;
+          const port = currentLine.querySelector('.port').value;
+          
+          const newLine = createRuleLine(sourceIp, destinationIp, '', port);
+          currentLine.after(newLine);
+        } else if (e.target.classList.contains('add-port')) {
+          const currentLine = e.target.closest('.rule-line');
+          const sourceIp = currentLine.querySelector('.sourceIp').value;
+          const destinationIp = currentLine.querySelector('.destinationIp').value;
+          const protocol = currentLine.querySelector('.protocol').value;
+          
+          const newLine = createRuleLine(sourceIp, destinationIp, protocol, '');
+          currentLine.after(newLine);
         }
       });
     </script>
