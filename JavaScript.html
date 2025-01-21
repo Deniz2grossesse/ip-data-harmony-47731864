@@ -1,0 +1,168 @@
+<script>
+function validateIpFormat(ip) {
+  const regex = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/;
+  if (!regex.test(ip)) return false;
+  
+  const parts = ip.split('.');
+  return parts.every(part => {
+    const num = parseInt(part);
+    return num >= 0 && num <= 255;
+  });
+}
+
+function validatePort(port) {
+  const portNum = parseInt(port);
+  return portNum >= 1 && portNum <= 65000;
+}
+
+function duplicateField(type) {
+  const container = document.querySelector('.container');
+  const newRuleLine = document.createElement('div');
+  newRuleLine.className = 'rule-line';
+  
+  let sourceIp, destinationIp, protocol, port;
+  const ruleLines = document.getElementsByClassName('rule-line');
+  const lastRuleLine = ruleLines[ruleLines.length - 1];
+  
+  if (lastRuleLine) {
+    sourceIp = lastRuleLine.querySelector('input[id="sourceIp"], input.sourceIp')?.value || '';
+    destinationIp = lastRuleLine.querySelector('input[id="destinationIp"], input.destinationIp')?.value || '';
+    protocol = lastRuleLine.querySelector('select[id="protocol"], select.protocol')?.value || 'ssh';
+    port = lastRuleLine.querySelector('input[id="port"], input.port')?.value || '';
+  }
+
+  newRuleLine.innerHTML = `
+    <div class="rule-column">
+      <input type="text" class="input-field sourceIp" placeholder="IP source" value="${type === 'source' ? '' : sourceIp || ''}" oninput="validateInput(this, 'ip')">
+      <button onclick="duplicateField('source')" class="add-button">+</button>
+    </div>
+    <div class="rule-column">
+      <input type="text" class="input-field destinationIp" placeholder="IP destination" value="${type === 'destination' ? '' : destinationIp || ''}" oninput="validateInput(this, 'ip')">
+      <button onclick="duplicateField('destination')" class="add-button">+</button>
+    </div>
+    <div class="rule-column">
+      <select class="input-field protocol">
+        <option value="ssh" ${type !== 'protocol' && protocol === 'ssh' ? 'selected' : ''}>SSH</option>
+        <option value="https" ${type !== 'protocol' && protocol === 'https' ? 'selected' : ''}>HTTPS</option>
+        <option value="ping" ${type !== 'protocol' && protocol === 'ping' ? 'selected' : ''}>PING</option>
+        <option value="smtp" ${type !== 'protocol' && protocol === 'smtp' ? 'selected' : ''}>SMTP</option>
+      </select>
+      <button onclick="duplicateField('protocol')" class="add-button">+</button>
+    </div>
+    <div class="rule-column">
+      <input type="text" class="input-field port" placeholder="Port" value="${type === 'port' ? '' : port || ''}" oninput="validateInput(this, 'port')">
+      <button onclick="duplicateField('port')" class="add-button">+</button>
+    </div>
+    <button onclick="deleteLine(this)" class="delete-button">Supprimer</button>
+  `;
+
+  const saveButton = document.querySelector('.save-button');
+  container.insertBefore(newRuleLine, saveButton);
+
+  if (type === 'source') {
+    newRuleLine.querySelector('.sourceIp').focus();
+  } else if (type === 'destination') {
+    newRuleLine.querySelector('.destinationIp').focus();
+  } else if (type === 'protocol') {
+    newRuleLine.querySelector('.protocol').focus();
+  } else if (type === 'port') {
+    newRuleLine.querySelector('.port').focus();
+  }
+}
+
+function deleteLine(button) {
+  const ruleLine = button.closest('.rule-line');
+  if (ruleLine) {
+    ruleLine.remove();
+  }
+}
+
+function validateInput(input, type) {
+  if (type === 'ip') {
+    if (!validateIpFormat(input.value) && input.value !== '') {
+      input.style.borderColor = 'red';
+      showNotification('Veuillez saisir une adresse IP valide (format: 0-255.0-255.0-255.0-255)', true);
+    } else {
+      input.style.borderColor = '#e2e8f0';
+    }
+  } else if (type === 'port') {
+    const value = input.value.replace(/[^0-9]/g, '');
+    input.value = value;
+    
+    if (!validatePort(value) && value !== '') {
+      input.style.borderColor = 'red';
+      showNotification('Le port doit être compris entre 1 et 65000', true);
+    } else {
+      input.style.borderColor = '#e2e8f0';
+    }
+  }
+}
+
+function showNotification(message, isError = false) {
+  const notification = document.getElementById('notification');
+  notification.textContent = message;
+  notification.classList.remove('hidden');
+  notification.classList.toggle('error', isError);
+  
+  setTimeout(() => {
+    notification.classList.add('hidden');
+  }, 5000);
+}
+
+function saveRules() {
+  const rules = [];
+  const ruleLines = document.querySelectorAll('.rule-line');
+  
+  ruleLines.forEach(line => {
+    const sourceIp = line.querySelector('.sourceIp, #sourceIp').value;
+    const destinationIp = line.querySelector('.destinationIp, #destinationIp').value;
+    const protocol = line.querySelector('.protocol, #protocol').value;
+    const port = line.querySelector('.port, #port').value;
+    
+    if (sourceIp && destinationIp && protocol && port) {
+      if (!validateIpFormat(sourceIp) || !validateIpFormat(destinationIp) || !validatePort(port)) {
+        showNotification('Veuillez corriger les erreurs de format avant de sauvegarder', true);
+        return;
+      }
+      rules.push({
+        sourceIp: sourceIp,
+        destinationIp: destinationIp,
+        protocol: protocol,
+        port: port
+      });
+    }
+  });
+  
+  if (rules.length === 0) {
+    showNotification('Aucune donnée valide à sauvegarder', true);
+    return;
+  }
+  
+  google.script.run
+    .withSuccessHandler(function(response) {
+      if (response.isDuplicate) {
+        showNotification(`Saisie impossible : doublon trouvé en ligne ${response.lineNumber} (même IP source, destination et protocole)`, true);
+      } else {
+        showNotification(response.message, !response.success);
+      }
+    })
+    .withFailureHandler(function(error) {
+      showNotification('Erreur lors de la sauvegarde: ' + error, true);
+    })
+    .saveData(rules);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('sourceIp').addEventListener('input', function() {
+    validateInput(this, 'ip');
+  });
+  
+  document.getElementById('destinationIp').addEventListener('input', function() {
+    validateInput(this, 'ip');
+  });
+  
+  document.getElementById('port').addEventListener('input', function() {
+    validateInput(this, 'port');
+  });
+});
+</script>
