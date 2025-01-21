@@ -35,19 +35,28 @@ function duplicateField(type) {
 
   // Créer une nouvelle règle basée sur le type
   const newRule = {
-    sourceIp: sourceIp,
+    sourceIp: type === 'source' ? '' : sourceIp,
     destinationIp: type === 'destination' ? '' : destinationIp,
-    protocol: protocol,
-    port: port
+    protocol: type === 'protocol' ? '' : protocol,
+    port: type === 'port' ? '' : port
   };
 
   rules.push(newRule);
   updatePreviewTable();
   
   // Mettre à jour les champs selon le type
-  if (type === 'destination') {
+  if (type === 'source') {
+    document.getElementById('sourceIp').value = '';
+    document.getElementById('sourceIp').focus();
+  } else if (type === 'destination') {
     document.getElementById('destinationIp').value = '';
     document.getElementById('destinationIp').focus();
+  } else if (type === 'protocol') {
+    document.getElementById('protocol').selectedIndex = 0;
+    document.getElementById('protocol').focus();
+  } else if (type === 'port') {
+    document.getElementById('port').value = '';
+    document.getElementById('port').focus();
   }
 }
 
