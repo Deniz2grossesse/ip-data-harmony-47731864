@@ -325,12 +325,20 @@
           const protocol = line.querySelector('.protocol, #protocol').value;
           const port = line.querySelector('.port, #port').value;
 
-          const ruleString = `${sourceIp}-${destinationIp}-${protocol}-${port}`;
-          
-          if (rules.includes(ruleString)) {
-            duplicates.push(index + 1);
-          } else {
-            rules.push(ruleString);
+          // Ne vérifier que si tous les champs sont remplis
+          if (sourceIp && destinationIp && protocol && port) {
+            const ruleString = `${sourceIp}-${destinationIp}-${protocol}-${port}`;
+            
+            const existingIndex = rules.indexOf(ruleString);
+            if (existingIndex !== -1) {
+              // Ajouter à la fois la ligne originale et la ligne dupliquée
+              if (!duplicates.includes(existingIndex + 1)) {
+                duplicates.push(existingIndex + 1);
+              }
+              duplicates.push(index + 1);
+            } else {
+              rules.push(ruleString);
+            }
           }
         });
 
