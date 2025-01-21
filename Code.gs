@@ -34,8 +34,45 @@ function validatePort(port) {
   return portNum >= 1 && portNum <= 65000;
 }
 
+function checkForDuplicates(data) {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  const existingData = sheet.getRange(11, 1, 140, 4).getValues();
+  
+  for (const newRule of data) {
+    for (const row of existingData) {
+      if (row[0] === '' && row[1] === '' && row[2] === '' && row[3] === '') continue;
+      
+      if (row[0] === newRule.sourceIp && 
+          row[1] === newRule.destinationIp && 
+          row[2] === newRule.protocol && 
+          row[3].toString() === newRule.port.toString()) {
+        return {
+          hasDuplicate: true,
+          duplicate: {
+            sourceIp: row[0],
+            destinationIp: row[1],
+            protocol: row[2],
+            port: row[3]
+          }
+        };
+      }
+    }
+  }
+  return { hasDuplicate: false };
+}
+
 function saveData(data) {
   try {
+    // Check for duplicates before saving
+    const duplicateCheck = checkForDuplicates(data);
+    if (duplicateCheck.hasDuplicate) {
+      return { 
+        success: false, 
+        message: "Règle en doublon détectée",
+        duplicate: duplicateCheck.duplicate
+      };
+    }
+    
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
     let nextRow = 11;
     
