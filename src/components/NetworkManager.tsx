@@ -27,17 +27,67 @@ const NetworkManager = () => {
     });
   };
 
+  const checkForDuplicates = async (rule: { sourceIp: string, destinationIp: string, protocol: string, port: string }) => {
+    try {
+      const result = await google.script.run
+        .withSuccessHandler((response: { isDuplicate: boolean, lineNumber: number, message: string }) => {
+          if (response.isDuplicate) {
+            toast({
+              title: "Erreur de doublon",
+              description: `Cette règle existe déjà à la ligne ${response.lineNumber}`,
+              variant: "destructive"
+            });
+            return true;
+          }
+          return false;
+        })
+        .withFailureHandler((error: Error) => {
+          console.error('Erreur lors de la vérification des doublons:', error);
+          toast({
+            title: "Erreur",
+            description: "Erreur lors de la vérification des doublons",
+            variant: "destructive"
+          });
+          return true;
+        })
+        .checkForDuplicates([rule]);
+      
+      return result;
+    } catch (error) {
+      console.error('Erreur:', error);
+      return true;
+    }
+  };
+
   const addDestination = () => {
     setDestinations([...destinations, '']);
   };
 
-  const handleDestinationChange = (index: number, value: string) => {
-    const newDestinations = [...destinations];
-    newDestinations[index] = value;
-    setDestinations(newDestinations);
+  const handleDestinationChange = async (index: number, value: string) => {
+    if (!validateIpAddress(value)) {
+      toast({
+        title: "Erreur",
+        description: "Format d'adresse IP destination invalide",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const isDuplicate = await checkForDuplicates({
+      sourceIp,
+      destinationIp: value,
+      protocol,
+      port
+    });
+
+    if (!isDuplicate) {
+      const newDestinations = [...destinations];
+      newDestinations[index] = value;
+      setDestinations(newDestinations);
+    }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!validateIpAddress(sourceIp)) {
@@ -58,6 +108,17 @@ const NetworkManager = () => {
         });
         return;
       }
+
+      const isDuplicate = await checkForDuplicates({
+        sourceIp,
+        destinationIp: destIp,
+        protocol,
+        port
+      });
+
+      if (isDuplicate) {
+        return;
+      }
     }
 
     const portNum = parseInt(port);
@@ -70,10 +131,27 @@ const NetworkManager = () => {
       return;
     }
 
-    toast({
-      title: "Succès",
-      description: "Données enregistrées avec succès"
-    });
+    // Si on arrive ici, il n'y a pas de doublons et les données sont valides
+    google.script.run
+      .withSuccessHandler(() => {
+        toast({
+          title: "Succès",
+          description: "Données enregistrées avec succès"
+        });
+      })
+      .withFailureHandler((error: Error) => {
+        toast({
+          title: "Erreur",
+          description: "Erreur lors de l'enregistrement: " + error,
+          variant: "destructive"
+        });
+      })
+      .saveData(destinations.map(destIp => ({
+        sourceIp,
+        destinationIp: destIp,
+        protocol,
+        port
+      })));
   };
 
   return (
