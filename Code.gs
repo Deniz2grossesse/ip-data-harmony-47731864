@@ -5,10 +5,6 @@ function doGet() {
     .setFaviconUrl('https://www.google.com/images/favicon.ico');
 }
 
-function include(filename) {
-  return HtmlService.createHtmlOutputFromFile(filename).getContent();
-}
-
 function validateIpFormat(ip) {
   const regex = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/;
   if (!regex.test(ip)) return false;

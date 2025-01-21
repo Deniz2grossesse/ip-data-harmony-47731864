@@ -81,45 +81,6 @@
         transform: scale(1.1);
       }
 
-      .button-row {
-        display: flex;
-        gap: 12px;
-        justify-content: center;
-        margin: 32px 0;
-      }
-
-      .action-button {
-        padding: 10px 20px;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 14px;
-        font-weight: 500;
-        transition: all 0.2s ease;
-      }
-
-      .action-button:hover {
-        transform: translateY(-1px);
-      }
-
-      .action-button.primary {
-        background-color: #3b82f6;
-        color: white;
-      }
-
-      .action-button.primary:hover {
-        background-color: #2563eb;
-      }
-
-      .action-button:not(.primary) {
-        background-color: #f1f5f9;
-        color: #475569;
-      }
-
-      .action-button:not(.primary):hover {
-        background-color: #e2e8f0;
-      }
-
       .notification {
         position: fixed;
         bottom: 24px;
@@ -151,52 +112,9 @@
         background-color: #10b981;
       }
 
-      .rules-preview {
-        margin-top: 32px;
-        border-top: 1px solid #e2e8f0;
-        padding-top: 32px;
-      }
-
-      #previewTable {
-        width: 100%;
-        border-collapse: collapse;
-        background: white;
-        border-radius: 8px;
-        overflow: hidden;
-      }
-
-      #previewTable th,
-      #previewTable td {
-        padding: 12px 16px;
-        text-align: left;
-        border-bottom: 1px solid #e2e8f0;
-      }
-
-      #previewTable th {
-        background-color: #f8fafc;
-        font-weight: 600;
-        color: #475569;
-      }
-
-      #previewTable tr:last-child td {
-        border-bottom: none;
-      }
-
-      #previewTable tr:hover td {
-        background-color: #f8fafc;
-      }
-
       @media (max-width: 768px) {
         .rule-line {
           grid-template-columns: 1fr;
-        }
-        
-        .button-row {
-          flex-direction: column;
-        }
-        
-        .action-button {
-          width: 100%;
         }
         
         .container {
@@ -204,16 +122,127 @@
         }
       }
     </style>
+    <script>
+      function validateIpFormat(ip) {
+        const regex = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/;
+        if (!regex.test(ip)) return false;
+        
+        const parts = ip.split('.');
+        return parts.every(part => {
+          const num = parseInt(part);
+          return num >= 0 && num <= 255;
+        });
+      }
+
+      function validatePort(port) {
+        const portNum = parseInt(port);
+        return portNum >= 1 && portNum <= 65000;
+      }
+
+      function duplicateField(type) {
+        const container = document.querySelector('.container');
+        const newRuleLine = document.createElement('div');
+        newRuleLine.className = 'rule-line';
+        
+        const sourceIp = document.getElementById('sourceIp').value;
+        const destinationIp = document.getElementById('destinationIp').value;
+        const protocol = document.getElementById('protocol').value;
+        const port = document.getElementById('port').value;
+
+        newRuleLine.innerHTML = `
+          <div class="rule-column">
+            <input type="text" class="input-field sourceIp" placeholder="IP source" value="${type === 'source' ? '' : sourceIp}" oninput="validateInput(this, 'ip')">
+            <button onclick="duplicateField('source')" class="add-button">+</button>
+          </div>
+          <div class="rule-column">
+            <input type="text" class="input-field destinationIp" placeholder="IP destination" value="${type === 'destination' ? '' : destinationIp}" oninput="validateInput(this, 'ip')">
+            <button onclick="duplicateField('destination')" class="add-button">+</button>
+          </div>
+          <div class="rule-column">
+            <select class="input-field protocol">
+              <option value="ssh" ${type !== 'protocol' && protocol === 'ssh' ? 'selected' : ''}>SSH</option>
+              <option value="https" ${type !== 'protocol' && protocol === 'https' ? 'selected' : ''}>HTTPS</option>
+              <option value="ping" ${type !== 'protocol' && protocol === 'ping' ? 'selected' : ''}>PING</option>
+              <option value="smtp" ${type !== 'protocol' && protocol === 'smtp' ? 'selected' : ''}>SMTP</option>
+            </select>
+            <button onclick="duplicateField('protocol')" class="add-button">+</button>
+          </div>
+          <div class="rule-column">
+            <input type="text" class="input-field port" placeholder="Port" value="${type === 'port' ? '' : port}" oninput="validateInput(this, 'port')">
+            <button onclick="duplicateField('port')" class="add-button">+</button>
+          </div>
+        `;
+
+        const lastRuleLine = document.querySelector('.rule-line:last-child');
+        lastRuleLine.parentNode.insertBefore(newRuleLine, lastRuleLine.nextSibling);
+
+        if (type === 'source') {
+          newRuleLine.querySelector('.sourceIp').focus();
+        } else if (type === 'destination') {
+          newRuleLine.querySelector('.destinationIp').focus();
+        } else if (type === 'protocol') {
+          newRuleLine.querySelector('.protocol').focus();
+        } else if (type === 'port') {
+          newRuleLine.querySelector('.port').focus();
+        }
+      }
+
+      function validateInput(input, type) {
+        if (type === 'ip') {
+          if (!validateIpFormat(input.value) && input.value !== '') {
+            input.style.borderColor = 'red';
+            showNotification('Veuillez saisir une adresse IP valide (format: 0-255.0-255.0-255.0-255)', true);
+          } else {
+            input.style.borderColor = '#e2e8f0';
+          }
+        } else if (type === 'port') {
+          const value = input.value.replace(/[^0-9]/g, '');
+          input.value = value;
+          
+          if (!validatePort(value) && value !== '') {
+            input.style.borderColor = 'red';
+            showNotification('Le port doit être compris entre 1 et 65000', true);
+          } else {
+            input.style.borderColor = '#e2e8f0';
+          }
+        }
+      }
+
+      function showNotification(message, isError = false) {
+        const notification = document.getElementById('notification');
+        notification.textContent = message;
+        notification.classList.remove('hidden');
+        notification.classList.toggle('error', isError);
+        
+        setTimeout(() => {
+          notification.classList.add('hidden');
+        }, 3000);
+      }
+
+      document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('sourceIp').addEventListener('input', function() {
+          validateInput(this, 'ip');
+        });
+        
+        document.getElementById('destinationIp').addEventListener('input', function() {
+          validateInput(this, 'ip');
+        });
+        
+        document.getElementById('port').addEventListener('input', function() {
+          validateInput(this, 'port');
+        });
+      });
+    </script>
   </head>
   <body>
     <div class="container">
       <div class="rule-line">
         <div class="rule-column">
-          <input type="text" id="sourceIp" placeholder="IP source" class="input-field">
+          <input type="text" id="sourceIp" placeholder="IP source" class="input-field" oninput="validateInput(this, 'ip')">
           <button onclick="duplicateField('source')" class="add-button">+</button>
         </div>
         <div class="rule-column">
-          <input type="text" id="destinationIp" placeholder="IP destination" class="input-field">
+          <input type="text" id="destinationIp" placeholder="IP destination" class="input-field" oninput="validateInput(this, 'ip')">
           <button onclick="duplicateField('destination')" class="add-button">+</button>
         </div>
         <div class="rule-column">
@@ -226,14 +255,12 @@
           <button onclick="duplicateField('protocol')" class="add-button">+</button>
         </div>
         <div class="rule-column">
-          <input type="text" id="port" placeholder="Port" class="input-field">
+          <input type="text" id="port" placeholder="Port" class="input-field" oninput="validateInput(this, 'port')">
           <button onclick="duplicateField('port')" class="add-button">+</button>
         </div>
       </div>
     </div>
     
     <div id="notification" class="notification hidden"></div>
-    
-    <script src="script.html"></script>
   </body>
 </html>
