@@ -166,18 +166,25 @@
         const newRuleLine = document.createElement('div');
         newRuleLine.className = 'rule-line';
         
-        const sourceIp = document.querySelector('#sourceIp, .sourceIp:last-of-type').value;
-        const destinationIp = document.querySelector('#destinationIp, .destinationIp:last-of-type').value;
-        const protocol = document.querySelector('#protocol, .protocol:last-of-type').value;
-        const port = document.querySelector('#port, .port:last-of-type').value;
+        // Récupération des valeurs de la dernière ligne
+        let sourceIp, destinationIp, protocol, port;
+        const ruleLines = document.getElementsByClassName('rule-line');
+        const lastRuleLine = ruleLines[ruleLines.length - 1];
+        
+        if (lastRuleLine) {
+          sourceIp = lastRuleLine.querySelector('input[id="sourceIp"], input.sourceIp')?.value || '';
+          destinationIp = lastRuleLine.querySelector('input[id="destinationIp"], input.destinationIp')?.value || '';
+          protocol = lastRuleLine.querySelector('select[id="protocol"], select.protocol')?.value || 'ssh';
+          port = lastRuleLine.querySelector('input[id="port"], input.port')?.value || '';
+        }
 
         newRuleLine.innerHTML = `
           <div class="rule-column">
-            <input type="text" class="input-field sourceIp" placeholder="IP source" value="${type === 'source' ? '' : sourceIp}" oninput="validateInput(this, 'ip')">
+            <input type="text" class="input-field sourceIp" placeholder="IP source" value="${type === 'source' ? '' : sourceIp || ''}" oninput="validateInput(this, 'ip')">
             <button onclick="duplicateField('source')" class="add-button">+</button>
           </div>
           <div class="rule-column">
-            <input type="text" class="input-field destinationIp" placeholder="IP destination" value="${type === 'destination' ? '' : destinationIp}" oninput="validateInput(this, 'ip')">
+            <input type="text" class="input-field destinationIp" placeholder="IP destination" value="${type === 'destination' ? '' : destinationIp || ''}" oninput="validateInput(this, 'ip')">
             <button onclick="duplicateField('destination')" class="add-button">+</button>
           </div>
           <div class="rule-column">
@@ -190,7 +197,7 @@
             <button onclick="duplicateField('protocol')" class="add-button">+</button>
           </div>
           <div class="rule-column">
-            <input type="text" class="input-field port" placeholder="Port" value="${type === 'port' ? '' : port}" oninput="validateInput(this, 'port')">
+            <input type="text" class="input-field port" placeholder="Port" value="${type === 'port' ? '' : port || ''}" oninput="validateInput(this, 'port')">
             <button onclick="duplicateField('port')" class="add-button">+</button>
           </div>
         `;
