@@ -310,6 +310,17 @@
           .saveData(rules);
       }
 
+      function verifyDuplicates() {
+        google.script.run
+          .withSuccessHandler(function(response) {
+            showNotification(response.message, !response.success);
+          })
+          .withFailureHandler(function(error) {
+            showNotification('Erreur lors de la vérification: ' + error, true);
+          })
+          .checkDuplicates();
+      }
+
       document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('sourceIp').addEventListener('input', function() {
           validateInput(this, 'ip');
@@ -351,7 +362,10 @@
         </div>
         <button onclick="deleteLine(this)" class="delete-button">Supprimer</button>
       </div>
-      <button onclick="saveRules()" class="save-button">Valider</button>
+      <div style="display: flex; gap: 16px; justify-content: center; margin-top: 20px;">
+        <button onclick="verifyDuplicates()" class="save-button" style="background-color: #4f46e5;">Vérifier</button>
+        <button onclick="saveRules()" class="save-button">Valider</button>
+      </div>
     </div>
     
     <div id="notification" class="notification hidden"></div>
