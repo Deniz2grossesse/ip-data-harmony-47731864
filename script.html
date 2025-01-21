@@ -1,13 +1,52 @@
 <script>
-function addRule(type) {
-  const container = document.getElementById('rulesContainer');
-  const template = container.querySelector('.rule-line').cloneNode(true);
+let rules = [];
+
+function validateIpFormat(ip) {
+  const regex = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/;
+  if (!regex.test(ip)) return false;
   
-  // Clear input values
-  template.querySelectorAll('input').forEach(input => input.value = '');
-  template.querySelector('select').selectedIndex = 0;
+  const parts = ip.split('.');
+  return parts.every(part => {
+    const num = parseInt(part);
+    return num >= 0 && num <= 255;
+  });
+}
+
+function validatePort(port) {
+  const portNum = parseInt(port);
+  return portNum >= 1 && portNum <= 65535;
+}
+
+function addRule() {
+  const sourceIp = document.getElementById('sourceIp').value;
+  const destinationIp = document.getElementById('destinationIp').value;
+  const protocol = document.getElementById('protocol').value;
+  const port = document.getElementById('port').value;
+
+  // Validation
+  if (!validateIpFormat(sourceIp)) {
+    showNotification('Format IP source invalide', true);
+    return;
+  }
+  if (!validateIpFormat(destinationIp)) {
+    showNotification('Format IP destination invalide', true);
+    return;
+  }
+  if (!validatePort(port)) {
+    showNotification('Port invalide (doit être entre 1 et 65535)', true);
+    return;
+  }
+
+  const rule = { sourceIp, destinationIp, protocol, port };
+  rules.push(rule);
+  updatePreviewTable();
+  showNotification('Règle ajoutée avec succès');
   
-  container.appendChild(template);
+  // Clear inputs
+  document.getElementById('sourceIp').value = '';
+  document.getElementById('destinationIp').value = '';
+  document.getElementById('protocol').selectedIndex = 0;
+  document.getElementById('port').value = '';
 }
 
 function showNotification(message, isError = false) {
@@ -21,26 +60,20 @@ function showNotification(message, isError = false) {
   }, 3000);
 }
 
-function validateRules() {
-  const rules = [];
-  const lines = document.querySelectorAll('.rule-line');
+function updatePreviewTable() {
+  const tbody = document.querySelector('#previewTable tbody');
+  tbody.innerHTML = '';
   
-  for (const line of lines) {
-    const sourceIp = line.querySelector('.sourceIp').value;
-    const destinationIp = line.querySelector('.destinationIp').value;
-    const protocol = line.querySelector('.protocol').value;
-    const port = parseInt(line.querySelector('.port').value);
-    
-    if (sourceIp && destinationIp && protocol && port) {
-      rules.push({ sourceIp, destinationIp, protocol, port });
-    }
-  }
-  
-  return rules;
+  rules.forEach(rule => {
+    const row = tbody.insertRow();
+    row.insertCell().textContent = rule.sourceIp;
+    row.insertCell().textContent = rule.destinationIp;
+    row.insertCell().textContent = rule.protocol;
+    row.insertCell().textContent = rule.port;
+  });
 }
 
 function verifyRules() {
-  const rules = validateRules();
   if (rules.length === 0) {
     showNotification('Aucune règle à vérifier', true);
     return;
@@ -65,7 +98,6 @@ function verifyRules() {
 }
 
 function saveRules() {
-  const rules = validateRules();
   if (rules.length === 0) {
     showNotification('Aucune règle à enregistrer', true);
     return;
@@ -75,7 +107,8 @@ function saveRules() {
     .withSuccessHandler(response => {
       if (response.success) {
         showNotification(response.message);
-        updatePreviewTable(rules);
+        rules = []; // Clear rules after successful save
+        updatePreviewTable();
       } else {
         showNotification(response.message, true);
       }
@@ -84,18 +117,5 @@ function saveRules() {
       showNotification('Erreur lors de l\'enregistrement: ' + error, true);
     })
     .saveData(rules);
-}
-
-function updatePreviewTable(rules) {
-  const tbody = document.querySelector('#previewTable tbody');
-  tbody.innerHTML = '';
-  
-  rules.forEach(rule => {
-    const row = tbody.insertRow();
-    row.insertCell().textContent = rule.sourceIp;
-    row.insertCell().textContent = rule.destinationIp;
-    row.insertCell().textContent = rule.protocol;
-    row.insertCell().textContent = rule.port;
-  });
 }
 </script>
