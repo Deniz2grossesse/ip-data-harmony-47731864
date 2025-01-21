@@ -49,7 +49,7 @@ function createFile() {
       }
 
       .container {
-        max-width: 800px;
+        max-width: 1200px;
         margin: 0 auto;
         background: white;
         padding: 2rem;
@@ -117,7 +117,7 @@ function createFile() {
         font-size: 1rem;
         font-weight: 500;
         cursor: pointer;
-        margin-bottom: 1.5rem;
+        margin-bottom: 1rem;
         transition: background-color 0.2s ease;
       }
 
@@ -125,17 +125,33 @@ function createFile() {
         background-color: #e8e8ed;
       }
 
-      .destination-group {
+      .rule-group {
         padding: 1rem;
         margin-bottom: 1rem;
         border-radius: 8px;
         background-color: #f5f5f7;
       }
 
+      .destination-group {
+        padding: 1rem;
+        margin: 0.5rem 0;
+        border-radius: 8px;
+        background-color: white;
+        border: 1px solid #d2d2d7;
+      }
+
+      .port-protocol-group {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        margin-top: 0.5rem;
+      }
+
       .preview-table {
         width: 100%;
         margin-top: 2rem;
         border-collapse: collapse;
+        overflow-x: auto;
       }
 
       .preview-table th,
@@ -183,6 +199,10 @@ function createFile() {
         .container {
           padding: 1rem;
         }
+
+        .port-protocol-group {
+          grid-template-columns: 1fr;
+        }
       }
     </style>
   </head>
@@ -191,37 +211,53 @@ function createFile() {
       <h1>Gestionnaire de Règles Réseau</h1>
       
       <form id="networkForm">
-        <div class="form-group">
-          <label for="sourceIp">IP Source</label>
-          <input type="text" id="sourceIp" required pattern="^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$">
-        </div>
-
-        <div id="destinationsContainer">
-          <div class="destination-group">
+        <div id="rulesContainer">
+          <div class="rule-group">
             <div class="form-group">
-              <label>IP Destination</label>
-              <input type="text" class="destinationIp" required pattern="^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$">
+              <label>IP Source</label>
+              <input type="text" class="sourceIp" required pattern="^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$">
             </div>
+
+            <div class="destinations-container">
+              <div class="destination-group">
+                <div class="form-group">
+                  <label>IP Destination</label>
+                  <input type="text" class="destinationIp" required pattern="^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$">
+                </div>
+                
+                <div class="port-protocol-pairs">
+                  <div class="port-protocol-group">
+                    <div class="form-group">
+                      <label>Protocole</label>
+                      <select class="protocol" required>
+                        <option value="TCP">TCP</option>
+                        <option value="UDP">UDP</option>
+                        <option value="ICMP">ICMP</option>
+                      </select>
+                    </div>
+
+                    <div class="form-group">
+                      <label>Port</label>
+                      <input type="number" class="port" required min="1" max="65535">
+                    </div>
+                  </div>
+                </div>
+
+                <button type="button" class="btn-secondary add-port-protocol">
+                  Ajouter Protocole/Port
+                </button>
+              </div>
+            </div>
+
+            <button type="button" class="btn-secondary add-destination">
+              Ajouter une destination
+            </button>
           </div>
         </div>
 
-        <button type="button" id="addDestination" class="btn-secondary">
-          Ajouter une destination
+        <button type="button" class="btn-secondary" id="addRule">
+          Ajouter une nouvelle règle
         </button>
-
-        <div class="form-group">
-          <label for="protocol">Protocole</label>
-          <select id="protocol" required>
-            <option value="TCP">TCP</option>
-            <option value="UDP">UDP</option>
-            <option value="ICMP">ICMP</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="port">Port</label>
-          <input type="number" id="port" required min="1" max="65535">
-        </div>
 
         <div class="preview-container">
           <h2>Aperçu des règles</h2>
@@ -273,74 +309,168 @@ function createFile() {
         }, 3000);
       }
 
-      function addDestinationField() {
-        const container = document.getElementById('destinationsContainer');
-        const newGroup = document.createElement('div');
-        newGroup.className = 'destination-group';
-        newGroup.innerHTML = \`
+      function createPortProtocolGroup() {
+        const group = document.createElement('div');
+        group.className = 'port-protocol-group';
+        group.innerHTML = \`
+          <div class="form-group">
+            <label>Protocole</label>
+            <select class="protocol" required>
+              <option value="TCP">TCP</option>
+              <option value="UDP">UDP</option>
+              <option value="ICMP">ICMP</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Port</label>
+            <input type="number" class="port" required min="1" max="65535">
+          </div>
+        \`;
+        return group;
+      }
+
+      function createDestinationGroup() {
+        const group = document.createElement('div');
+        group.className = 'destination-group';
+        group.innerHTML = \`
           <div class="form-group">
             <label>IP Destination</label>
             <input type="text" class="destinationIp" required pattern="^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$">
           </div>
+          <div class="port-protocol-pairs">
+            <div class="port-protocol-group">
+              <div class="form-group">
+                <label>Protocole</label>
+                <select class="protocol" required>
+                  <option value="TCP">TCP</option>
+                  <option value="UDP">UDP</option>
+                  <option value="ICMP">ICMP</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>Port</label>
+                <input type="number" class="port" required min="1" max="65535">
+              </div>
+            </div>
+          </div>
+          <button type="button" class="btn-secondary add-port-protocol">
+            Ajouter Protocole/Port
+          </button>
         \`;
-        container.appendChild(newGroup);
-        
-        newGroup.style.opacity = '0';
-        requestAnimationFrame(() => {
-          newGroup.style.transition = 'opacity 0.3s ease';
-          newGroup.style.opacity = '1';
-        });
+        return group;
+      }
+
+      function createRuleGroup() {
+        const group = document.createElement('div');
+        group.className = 'rule-group';
+        group.innerHTML = \`
+          <div class="form-group">
+            <label>IP Source</label>
+            <input type="text" class="sourceIp" required pattern="^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$">
+          </div>
+          <div class="destinations-container">
+            <div class="destination-group">
+              <div class="form-group">
+                <label>IP Destination</label>
+                <input type="text" class="destinationIp" required pattern="^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$">
+              </div>
+              <div class="port-protocol-pairs">
+                <div class="port-protocol-group">
+                  <div class="form-group">
+                    <label>Protocole</label>
+                    <select class="protocol" required>
+                      <option value="TCP">TCP</option>
+                      <option value="UDP">UDP</option>
+                      <option value="ICMP">ICMP</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>Port</label>
+                    <input type="number" class="port" required min="1" max="65535">
+                  </div>
+                </div>
+              </div>
+              <button type="button" class="btn-secondary add-port-protocol">
+                Ajouter Protocole/Port
+              </button>
+            </div>
+          </div>
+          <button type="button" class="btn-secondary add-destination">
+            Ajouter une destination
+          </button>
+        \`;
+        return group;
       }
 
       function updatePreviewTable() {
-        const sourceIp = document.getElementById('sourceIp').value;
-        const destinations = Array.from(document.getElementsByClassName('destinationIp')).map(input => input.value);
-        const protocol = document.getElementById('protocol').value;
-        const port = document.getElementById('port').value;
-        
         const tbody = document.querySelector('#previewTable tbody');
         tbody.innerHTML = '';
         
-        destinations.forEach(destIp => {
-          if (destIp) {
-            const row = tbody.insertRow();
-            row.insertCell().textContent = sourceIp;
-            row.insertCell().textContent = destIp;
-            row.insertCell().textContent = protocol;
-            row.insertCell().textContent = port;
-          }
+        document.querySelectorAll('.rule-group').forEach(ruleGroup => {
+          const sourceIp = ruleGroup.querySelector('.sourceIp').value;
+          
+          ruleGroup.querySelectorAll('.destination-group').forEach(destGroup => {
+            const destinationIp = destGroup.querySelector('.destinationIp').value;
+            
+            destGroup.querySelectorAll('.port-protocol-group').forEach(portProtocolGroup => {
+              const protocol = portProtocolGroup.querySelector('.protocol').value;
+              const port = portProtocolGroup.querySelector('.port').value;
+              
+              if (sourceIp && destinationIp && protocol && port) {
+                const row = tbody.insertRow();
+                row.insertCell().textContent = sourceIp;
+                row.insertCell().textContent = destinationIp;
+                row.insertCell().textContent = protocol;
+                row.insertCell().textContent = port;
+              }
+            });
+          });
         });
       }
 
       function validateAndSave() {
-        const sourceIp = document.getElementById('sourceIp').value;
-        const destinations = Array.from(document.getElementsByClassName('destinationIp')).map(input => input.value);
-        const protocol = document.getElementById('protocol').value;
-        const port = document.getElementById('port').value;
-        
-        if (!validateIpAddress(sourceIp)) {
-          showNotification("Format d'adresse IP source invalide", true);
-          return;
-        }
-        
-        for (const destIp of destinations) {
-          if (!validateIpAddress(destIp)) {
-            showNotification("Format d'adresse IP destination invalide", true);
+        const rules = [];
+        let hasError = false;
+
+        document.querySelectorAll('.rule-group').forEach(ruleGroup => {
+          const sourceIp = ruleGroup.querySelector('.sourceIp').value;
+          
+          if (!validateIpAddress(sourceIp)) {
+            showNotification("Format d'adresse IP source invalide", true);
+            hasError = true;
             return;
           }
-        }
+          
+          ruleGroup.querySelectorAll('.destination-group').forEach(destGroup => {
+            const destinationIp = destGroup.querySelector('.destinationIp').value;
+            
+            if (!validateIpAddress(destinationIp)) {
+              showNotification("Format d'adresse IP destination invalide", true);
+              hasError = true;
+              return;
+            }
+            
+            destGroup.querySelectorAll('.port-protocol-group').forEach(portProtocolGroup => {
+              const protocol = portProtocolGroup.querySelector('.protocol').value;
+              const port = portProtocolGroup.querySelector('.port').value;
+              
+              if (port < 1 || port > 65535) {
+                showNotification("Le port doit être entre 1 et 65535", true);
+                hasError = true;
+                return;
+              }
+              
+              rules.push({
+                sourceIp,
+                destinationIp,
+                protocol,
+                port
+              });
+            });
+          });
+        });
         
-        if (port < 1 || port > 65535) {
-          showNotification("Le port doit être entre 1 et 65535", true);
-          return;
-        }
-        
-        const data = destinations.map(destIp => ({
-          sourceIp,
-          destinationIp: destIp,
-          protocol,
-          port
-        }));
+        if (hasError) return;
         
         google.script.run
           .withSuccessHandler(function(response) {
@@ -348,6 +478,11 @@ function createFile() {
               showNotification(response.message);
               document.getElementById('networkForm').reset();
               document.querySelector('#previewTable tbody').innerHTML = '';
+              
+              // Reset to initial state with one rule group
+              const rulesContainer = document.getElementById('rulesContainer');
+              rulesContainer.innerHTML = '';
+              rulesContainer.appendChild(createRuleGroup());
             } else {
               showNotification(response.message, true);
             }
@@ -355,17 +490,27 @@ function createFile() {
           .withFailureHandler(function(error) {
             showNotification("Erreur lors de l'enregistrement: " + error, true);
           })
-          .saveData(data);
+          .saveData(rules);
       }
 
-      document.getElementById('addDestination').addEventListener('click', addDestinationField);
-
-      ['sourceIp', 'protocol', 'port'].forEach(id => {
-        document.getElementById(id).addEventListener('input', updatePreviewTable);
+      // Event Listeners
+      document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('add-port-protocol')) {
+          const portProtocolPairs = e.target.previousElementSibling;
+          portProtocolPairs.appendChild(createPortProtocolGroup());
+        } else if (e.target.classList.contains('add-destination')) {
+          const destinationsContainer = e.target.previousElementSibling;
+          destinationsContainer.appendChild(createDestinationGroup());
+        } else if (e.target.id === 'addRule') {
+          document.getElementById('rulesContainer').appendChild(createRuleGroup());
+        }
       });
 
-      document.getElementById('destinationsContainer').addEventListener('input', function(e) {
-        if (e.target.classList.contains('destinationIp')) {
+      document.addEventListener('input', function(e) {
+        if (e.target.classList.contains('sourceIp') ||
+            e.target.classList.contains('destinationIp') ||
+            e.target.classList.contains('protocol') ||
+            e.target.classList.contains('port')) {
           updatePreviewTable();
         }
       });
