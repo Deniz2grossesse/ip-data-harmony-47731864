@@ -215,14 +215,16 @@ function createFile() {
           <div class="rule-group">
             <div class="form-group">
               <label>IP Source</label>
-              <input type="text" class="sourceIp" required pattern="^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$">
+              <input type="text" class="sourceIp" required pattern="^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$" 
+                     title="Format IP valide requis (ex: 192.168.1.1)">
             </div>
 
             <div class="destinations-container">
               <div class="destination-group">
                 <div class="form-group">
                   <label>IP Destination</label>
-                  <input type="text" class="destinationIp" required pattern="^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$">
+                  <input type="text" class="destinationIp" required pattern="^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$"
+                         title="Format IP valide requis (ex: 192.168.1.1)">
                 </div>
                 
                 <div class="port-protocol-pairs">
@@ -230,9 +232,10 @@ function createFile() {
                     <div class="form-group">
                       <label>Protocole</label>
                       <select class="protocol" required>
-                        <option value="TCP">TCP</option>
-                        <option value="UDP">UDP</option>
-                        <option value="ICMP">ICMP</option>
+                        <option value="ssh">SSH</option>
+                        <option value="https">HTTPS</option>
+                        <option value="ping">PING</option>
+                        <option value="smtp">SMTP</option>
                       </select>
                     </div>
 
@@ -316,9 +319,10 @@ function createFile() {
           <div class="form-group">
             <label>Protocole</label>
             <select class="protocol" required>
-              <option value="TCP">TCP</option>
-              <option value="UDP">UDP</option>
-              <option value="ICMP">ICMP</option>
+              <option value="ssh">SSH</option>
+              <option value="https">HTTPS</option>
+              <option value="ping">PING</option>
+              <option value="smtp">SMTP</option>
             </select>
           </div>
           <div class="form-group">
@@ -342,9 +346,10 @@ function createFile() {
               <div class="form-group">
                 <label>Protocole</label>
                 <select class="protocol" required>
-                  <option value="TCP">TCP</option>
-                  <option value="UDP">UDP</option>
-                  <option value="ICMP">ICMP</option>
+                  <option value="ssh">SSH</option>
+                  <option value="https">HTTPS</option>
+                  <option value="ping">PING</option>
+                  <option value="smtp">SMTP</option>
                 </select>
               </div>
               <div class="form-group">
@@ -379,9 +384,10 @@ function createFile() {
                   <div class="form-group">
                     <label>Protocole</label>
                     <select class="protocol" required>
-                      <option value="TCP">TCP</option>
-                      <option value="UDP">UDP</option>
-                      <option value="ICMP">ICMP</option>
+                      <option value="ssh">SSH</option>
+                      <option value="https">HTTPS</option>
+                      <option value="ping">PING</option>
+                      <option value="smtp">SMTP</option>
                     </select>
                   </div>
                   <div class="form-group">
@@ -479,7 +485,6 @@ function createFile() {
               document.getElementById('networkForm').reset();
               document.querySelector('#previewTable tbody').innerHTML = '';
               
-              // Reset to initial state with one rule group
               const rulesContainer = document.getElementById('rulesContainer');
               rulesContainer.innerHTML = '';
               rulesContainer.appendChild(createRuleGroup());
@@ -493,7 +498,6 @@ function createFile() {
           .saveData(rules);
       }
 
-      // Event Listeners
       document.addEventListener('click', function(e) {
         if (e.target.classList.contains('add-port-protocol')) {
           const portProtocolPairs = e.target.previousElementSibling;
