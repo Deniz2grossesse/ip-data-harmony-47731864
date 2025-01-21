@@ -111,3 +111,13 @@ function deleteRow(rowNumber) {
     return { success: false, message: "Erreur lors de la suppression: " + error.toString() };
   }
 }
+
+function markDuplicateAsIgnored(lineNumber, referenceLine) {
+  try {
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    sheet.getRange(lineNumber, 5).setValue(`Doublon avec la ligne ${referenceLine} - ignoré`);
+    return { success: true, message: "Doublon marqué comme ignoré" };
+  } catch (error) {
+    return { success: false, message: "Erreur lors du marquage: " + error.toString() };
+  }
+}
