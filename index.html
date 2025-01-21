@@ -159,6 +159,49 @@
       .save-button:active {
         transform: translateY(0);
       }
+
+      .check-duplicates-button {
+        display: inline-block;
+        margin: 20px 10px 0;
+        padding: 12px 24px;
+        background-color: #f59e0b;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .check-duplicates-button:hover {
+        background-color: #d97706;
+        transform: translateY(-1px);
+      }
+
+      .duplicate-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+      }
+
+      .duplicate-actions button {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s ease;
+      }
+
+      .remove-duplicate-button {
+        background-color: #ef4444;
+        color: white;
+      }
+
+      .ignore-duplicate-button {
+        background-color: #6b7280;
+        color: white;
+      }
     </style>
     <script>
       function validateIpFormat(ip) {
@@ -271,6 +314,66 @@
         }, 3000);
       }
 
+      function checkDuplicates() {
+        const rules = [];
+        const ruleLines = document.querySelectorAll('.rule-line');
+        const duplicates = [];
+
+        ruleLines.forEach((line, index) => {
+          const sourceIp = line.querySelector('.sourceIp, #sourceIp').value;
+          const destinationIp = line.querySelector('.destinationIp, #destinationIp').value;
+          const protocol = line.querySelector('.protocol, #protocol').value;
+          const port = line.querySelector('.port, #port').value;
+
+          const ruleString = `${sourceIp}-${destinationIp}-${protocol}-${port}`;
+          
+          if (rules.includes(ruleString)) {
+            duplicates.push(index + 1);
+          } else {
+            rules.push(ruleString);
+          }
+        });
+
+        if (duplicates.length > 0) {
+          const message = `Doublons trouvés sur la(les) ligne(s) : ${duplicates.join(', ')}`;
+          showDuplicateNotification(message, duplicates);
+        } else {
+          showNotification('Aucun doublon trouvé');
+        }
+      }
+
+      function showDuplicateNotification(message, duplicateLines) {
+        const notification = document.getElementById('notification');
+        notification.innerHTML = `
+          ${message}
+          <div class="duplicate-actions">
+            <button onclick="removeDuplicates(${JSON.stringify(duplicateLines)})" class="remove-duplicate-button">
+              Supprimer les doublons
+            </button>
+            <button onclick="ignoreDuplicates()" class="ignore-duplicate-button">
+              Ignorer
+            </button>
+          </div>
+        `;
+        notification.classList.remove('hidden');
+        notification.classList.remove('error');
+      }
+
+      function removeDuplicates(duplicateLines) {
+        const ruleLines = document.querySelectorAll('.rule-line');
+        duplicateLines.reverse().forEach(lineNumber => {
+          if (lineNumber > 1) { // Ne pas supprimer la première ligne
+            ruleLines[lineNumber - 1].remove();
+          }
+        });
+        document.getElementById('notification').classList.add('hidden');
+        showNotification('Doublons supprimés avec succès');
+      }
+
+      function ignoreDuplicates() {
+        document.getElementById('notification').classList.add('hidden');
+      }
+
       function saveRules() {
         const rules = [];
         const ruleLines = document.querySelectorAll('.rule-line');
@@ -351,7 +454,10 @@
         </div>
         <button onclick="deleteLine(this)" class="delete-button">Supprimer</button>
       </div>
-      <button onclick="saveRules()" class="save-button">Valider</button>
+      <div style="text-align: center;">
+        <button onclick="saveRules()" class="save-button">Valider</button>
+        <button onclick="checkDuplicates()" class="check-duplicates-button">Vérifier doublons</button>
+      </div>
     </div>
     
     <div id="notification" class="notification hidden"></div>
