@@ -2,8 +2,183 @@
 <html>
   <head>
     <base target="_top">
-    <link rel="stylesheet" href="styles.html">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Rules Manager</title>
+    <!-- Chargement de la police Inter -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Chargement des styles -->
+    <style>
+      /* Inclusion directe des styles pour éviter les problèmes de chargement */
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        padding: 20px;
+        background: linear-gradient(109.6deg, rgba(223,234,247,1) 11.2%, rgba(244,248,252,1) 91.1%);
+        min-height: 100vh;
+      }
+
+      .container {
+        max-width: 1000px;
+        margin: 0 auto;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 2rem;
+        border-radius: 16px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        backdrop-filter: blur(10px);
+      }
+
+      .rule-line {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        margin-bottom: 24px;
+      }
+
+      .input-field {
+        width: 100%;
+        padding: 10px 16px;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: all 0.2s ease;
+        background: white;
+      }
+
+      .input-field:focus {
+        outline: none;
+        border-color: #94a3b8;
+        box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.1);
+      }
+
+      .button-row {
+        display: flex;
+        gap: 12px;
+        justify-content: center;
+        margin: 32px 0;
+      }
+
+      .action-button {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+      }
+
+      .action-button:hover {
+        transform: translateY(-1px);
+      }
+
+      .action-button.primary {
+        background-color: #3b82f6;
+        color: white;
+      }
+
+      .action-button.primary:hover {
+        background-color: #2563eb;
+      }
+
+      .action-button:not(.primary) {
+        background-color: #f1f5f9;
+        color: #475569;
+      }
+
+      .action-button:not(.primary):hover {
+        background-color: #e2e8f0;
+      }
+
+      .notification {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        padding: 12px 24px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 500;
+        opacity: 0;
+        transform: translateY(10px);
+        transition: all 0.3s ease;
+        z-index: 1000;
+      }
+
+      .notification.hidden {
+        display: none;
+      }
+
+      .notification:not(.hidden) {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .notification.error {
+        background-color: #ef4444;
+      }
+
+      .notification:not(.error) {
+        background-color: #10b981;
+      }
+
+      .rules-preview {
+        margin-top: 32px;
+        border-top: 1px solid #e2e8f0;
+        padding-top: 32px;
+      }
+
+      #previewTable {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+      }
+
+      #previewTable th,
+      #previewTable td {
+        padding: 12px 16px;
+        text-align: left;
+        border-bottom: 1px solid #e2e8f0;
+      }
+
+      #previewTable th {
+        background-color: #f8fafc;
+        font-weight: 600;
+        color: #475569;
+      }
+
+      #previewTable tr:last-child td {
+        border-bottom: none;
+      }
+
+      #previewTable tr:hover td {
+        background-color: #f8fafc;
+      }
+
+      @media (max-width: 768px) {
+        .rule-line {
+          grid-template-columns: 1fr;
+        }
+        
+        .button-row {
+          flex-direction: column;
+        }
+        
+        .action-button {
+          width: 100%;
+        }
+        
+        .container {
+          padding: 1rem;
+        }
+      }
+    </style>
   </head>
   <body>
     <div class="container">
