@@ -320,7 +320,7 @@
         google.script.run
           .withSuccessHandler(function(response) {
             if (response.isDuplicate) {
-              showNotification(`Saisie impossible : doublon trouvé en ligne ${response.lineNumber}`, true);
+              showNotification(`Saisie impossible : doublon trouvé en ligne ${response.lineNumber} (même IP source, destination et protocole)`, true);
             } else {
               showNotification(response.message, !response.success);
             }

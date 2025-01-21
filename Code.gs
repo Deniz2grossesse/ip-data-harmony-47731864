@@ -44,11 +44,10 @@ function checkForDuplicates(data) {
       const row = existingData[i];
       if (row[0] === "" && row[1] === "" && row[2] === "" && row[3] === "") continue;
       
-      // Vérification exacte uniquement (même IP source, destination, protocole et port)
+      // Vérification exacte uniquement (même IP source, destination, protocole)
       if (row[0] === newRule.sourceIp && 
           row[1] === newRule.destinationIp && 
-          row[2] === newRule.protocol && 
-          row[3] === newRule.port) {
+          row[2] === newRule.protocol) {
         return { 
           isDuplicate: true, 
           lineNumber: i + 11,
