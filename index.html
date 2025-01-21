@@ -315,34 +315,47 @@
       }
 
       function checkDuplicates() {
-        const rules = [];
         const ruleLines = document.querySelectorAll('.rule-line');
         const duplicates = [];
 
-        ruleLines.forEach((line, index) => {
-          const sourceIp = line.querySelector('.sourceIp, #sourceIp').value;
-          const destinationIp = line.querySelector('.destinationIp, #destinationIp').value;
-          const protocol = line.querySelector('.protocol, #protocol').value;
-          const port = line.querySelector('.port, #port').value;
+        // Pour chaque ligne
+        for (let i = 0; i < ruleLines.length; i++) {
+          const currentLine = ruleLines[i];
+          const sourceIp = currentLine.querySelector('.sourceIp, #sourceIp').value;
+          const destinationIp = currentLine.querySelector('.destinationIp, #destinationIp').value;
+          const protocol = currentLine.querySelector('.protocol, #protocol').value;
+          const port = currentLine.querySelector('.port, #port').value;
 
           // Ne vérifier que si tous les champs sont remplis
           if (sourceIp && destinationIp && protocol && port) {
-            const ruleString = `${sourceIp}-${destinationIp}-${protocol}-${port}`;
+            const currentRuleString = `${sourceIp}-${destinationIp}-${protocol}-${port}`;
             
-            const existingIndex = rules.indexOf(ruleString);
-            if (existingIndex !== -1) {
-              // Ajouter à la fois la ligne originale et la ligne dupliquée
-              if (!duplicates.includes(existingIndex + 1)) {
-                duplicates.push(existingIndex + 1);
+            // Comparer uniquement avec les lignes suivantes
+            for (let j = i + 1; j < ruleLines.length; j++) {
+              const nextLine = ruleLines[j];
+              const nextSourceIp = nextLine.querySelector('.sourceIp, #sourceIp').value;
+              const nextDestinationIp = nextLine.querySelector('.destinationIp, #destinationIp').value;
+              const nextProtocol = nextLine.querySelector('.protocol, #protocol').value;
+              const nextPort = nextLine.querySelector('.port, #port').value;
+
+              if (nextSourceIp && nextDestinationIp && nextProtocol && nextPort) {
+                const nextRuleString = `${nextSourceIp}-${nextDestinationIp}-${nextProtocol}-${nextPort}`;
+                
+                if (currentRuleString === nextRuleString) {
+                  if (!duplicates.includes(i + 1)) {
+                    duplicates.push(i + 1);
+                  }
+                  if (!duplicates.includes(j + 1)) {
+                    duplicates.push(j + 1);
+                  }
+                }
               }
-              duplicates.push(index + 1);
-            } else {
-              rules.push(ruleString);
             }
           }
-        });
+        }
 
         if (duplicates.length > 0) {
+          duplicates.sort((a, b) => a - b); // Trier les numéros de ligne
           const message = `Doublons trouvés sur la(les) ligne(s) : ${duplicates.join(', ')}`;
           showDuplicateNotification(message, duplicates);
         } else {
