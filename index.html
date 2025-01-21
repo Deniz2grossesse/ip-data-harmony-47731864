@@ -271,6 +271,9 @@
             <input type="text" class="input-field port" placeholder="Port" value="${type === 'port' ? '' : port || ''}" oninput="validateInput(this, 'port')">
             <button onclick="duplicateField('port')" class="add-button">+</button>
           </div>
+          <div class="rule-column">
+            <input type="text" class="input-field comment" placeholder="Commentaire" readonly>
+          </div>
           <button onclick="deleteLine(this)" class="delete-button">Supprimer</button>
         `;
 
@@ -500,6 +503,9 @@
         <div class="rule-column">
           <input type="text" id="port" placeholder="Port" class="input-field" oninput="validateInput(this, 'port')">
           <button onclick="duplicateField('port')" class="add-button">+</button>
+        </div>
+        <div class="rule-column">
+          <input type="text" class="input-field comment" placeholder="Commentaire" readonly>
         </div>
         <button onclick="deleteLine(this)" class="delete-button">Supprimer</button>
       </div>
