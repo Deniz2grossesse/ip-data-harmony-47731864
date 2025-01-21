@@ -36,7 +36,8 @@ function validatePort(port) {
 
 function checkForDuplicates(data) {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-  const existingData = sheet.getRange(11, 1, 140, 4).getValues();
+  const lastRow = sheet.getLastRow();
+  const existingData = sheet.getRange(11, 1, lastRow - 10, 4).getValues();
   
   for (let newRule of data) {
     for (let i = 0; i < existingData.length; i++) {
