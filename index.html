@@ -159,49 +159,6 @@
       .save-button:active {
         transform: translateY(0);
       }
-
-      .check-duplicates-button {
-        display: inline-block;
-        margin: 20px 10px 0;
-        padding: 12px 24px;
-        background-color: #f59e0b;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s ease;
-      }
-
-      .check-duplicates-button:hover {
-        background-color: #d97706;
-        transform: translateY(-1px);
-      }
-
-      .duplicate-actions {
-        display: flex;
-        gap: 10px;
-        margin-top: 10px;
-      }
-
-      .duplicate-actions button {
-        padding: 8px 16px;
-        border: none;
-        border-radius: 6px;
-        cursor: pointer;
-        font-weight: 500;
-        transition: all 0.2s ease;
-      }
-
-      .remove-duplicate-button {
-        background-color: #ef4444;
-        color: white;
-      }
-
-      .ignore-duplicate-button {
-        background-color: #6b7280;
-        color: white;
-      }
     </style>
     <script>
       function validateIpFormat(ip) {
@@ -230,10 +187,10 @@
         const lastRuleLine = ruleLines[ruleLines.length - 1];
         
         if (lastRuleLine) {
-          sourceIp = lastRuleLine.querySelector('input[id="sourceIp"], input.sourceIp')?.value;
-          destinationIp = lastRuleLine.querySelector('input[id="destinationIp"], input.destinationIp')?.value;
+          sourceIp = lastRuleLine.querySelector('input[id="sourceIp"], input.sourceIp')?.value || '';
+          destinationIp = lastRuleLine.querySelector('input[id="destinationIp"], input.destinationIp')?.value || '';
           protocol = lastRuleLine.querySelector('select[id="protocol"], select.protocol')?.value || 'ssh';
-          port = lastRuleLine.querySelector('input[id="port"], input.port')?.value;
+          port = lastRuleLine.querySelector('input[id="port"], input.port')?.value || '';
         }
 
         newRuleLine.innerHTML = `
@@ -312,87 +269,6 @@
         setTimeout(() => {
           notification.classList.add('hidden');
         }, 3000);
-      }
-
-      function checkDuplicates() {
-        const ruleLines = document.querySelectorAll('.rule-line');
-        const duplicates = [];
-
-        // Pour chaque ligne
-        for (let i = 0; i < ruleLines.length; i++) {
-          const currentLine = ruleLines[i];
-          const sourceIp = currentLine.querySelector('.sourceIp, #sourceIp').value;
-          const destinationIp = currentLine.querySelector('.destinationIp, #destinationIp').value;
-          const protocol = currentLine.querySelector('.protocol, #protocol').value;
-          const port = currentLine.querySelector('.port, #port').value;
-
-          // Ne vérifier que si tous les champs sont remplis
-          if (sourceIp && destinationIp && protocol && port) {
-            const currentRuleString = `${sourceIp}-${destinationIp}-${protocol}-${port}`;
-            
-            // Comparer uniquement avec les lignes suivantes
-            for (let j = i + 1; j < ruleLines.length; j++) {
-              const nextLine = ruleLines[j];
-              const nextSourceIp = nextLine.querySelector('.sourceIp, #sourceIp').value;
-              const nextDestinationIp = nextLine.querySelector('.destinationIp, #destinationIp').value;
-              const nextProtocol = nextLine.querySelector('.protocol, #protocol').value;
-              const nextPort = nextLine.querySelector('.port, #port').value;
-
-              if (nextSourceIp && nextDestinationIp && nextProtocol && nextPort) {
-                const nextRuleString = `${nextSourceIp}-${nextDestinationIp}-${nextProtocol}-${nextPort}`;
-                
-                if (currentRuleString === nextRuleString) {
-                  if (!duplicates.includes(i + 1)) {
-                    duplicates.push(i + 1);
-                  }
-                  if (!duplicates.includes(j + 1)) {
-                    duplicates.push(j + 1);
-                  }
-                }
-              }
-            }
-          }
-        }
-
-        if (duplicates.length > 0) {
-          duplicates.sort((a, b) => a - b); // Trier les numéros de ligne
-          const message = `Doublons trouvés sur la(les) ligne(s) : ${duplicates.join(', ')}`;
-          showDuplicateNotification(message, duplicates);
-        } else {
-          showNotification('Aucun doublon trouvé');
-        }
-      }
-
-      function showDuplicateNotification(message, duplicateLines) {
-        const notification = document.getElementById('notification');
-        notification.innerHTML = `
-          ${message}
-          <div class="duplicate-actions">
-            <button onclick="removeDuplicates(${JSON.stringify(duplicateLines)})" class="remove-duplicate-button">
-              Supprimer les doublons
-            </button>
-            <button onclick="ignoreDuplicates()" class="ignore-duplicate-button">
-              Ignorer
-            </button>
-          </div>
-        `;
-        notification.classList.remove('hidden');
-        notification.classList.remove('error');
-      }
-
-      function removeDuplicates(duplicateLines) {
-        const ruleLines = document.querySelectorAll('.rule-line');
-        duplicateLines.reverse().forEach(lineNumber => {
-          if (lineNumber > 1) { // Ne pas supprimer la première ligne
-            ruleLines[lineNumber - 1].remove();
-          }
-        });
-        document.getElementById('notification').classList.add('hidden');
-        showNotification('Doublons supprimés avec succès');
-      }
-
-      function ignoreDuplicates() {
-        document.getElementById('notification').classList.add('hidden');
       }
 
       function saveRules() {
@@ -475,10 +351,7 @@
         </div>
         <button onclick="deleteLine(this)" class="delete-button">Supprimer</button>
       </div>
-      <div style="text-align: center;">
-        <button onclick="saveRules()" class="save-button">Valider</button>
-        <button onclick="checkDuplicates()" class="check-duplicates-button">Vérifier doublons</button>
-      </div>
+      <button onclick="saveRules()" class="save-button">Valider</button>
     </div>
     
     <div id="notification" class="notification hidden"></div>
