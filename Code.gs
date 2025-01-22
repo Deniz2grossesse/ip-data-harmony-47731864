@@ -29,19 +29,18 @@ function showTopologyView() {
 
 function getNetworkRules() {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-  const data = sheet.getDataRange().getValues();
+  const data = sheet.getRange(12, 4, 200, 12).getValues(); // Commence à la ligne 12, colonne D
   const rules = [];
   
-  // Skip header row
-  for (let i = 1; i < data.length; i++) {
+  for (let i = 0; i < data.length; i++) {
     const row = data[i];
-    if (row[0] && row[1]) { // Vérifie si source IP et destination IP existent
+    if (row[0] && row[3]) { // Vérifie si source IP (colonne D) et destination IP (colonne G) existent
       rules.push({
-        sourceIp: row[0],
-        destinationIp: row[1],
-        protocol: row[2],
-        service: row[3],
-        port: row[4]
+        sourceIp: row[0],      // Colonne D
+        destinationIp: row[3], // Colonne G
+        protocol: row[4],      // Colonne H
+        service: row[5],       // Colonne I
+        port: row[6]          // Colonne J
       });
     }
   }
