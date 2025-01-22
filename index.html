@@ -41,7 +41,7 @@
       .rule-line {
         display: grid;
         grid-template-columns: repeat(9, 1fr);
-        gap: 12px;
+        gap: 8px;
         margin-bottom: 24px;
         align-items: start;
       }
@@ -53,20 +53,24 @@
       }
 
       .column-label {
-        font-size: 14px;
+        font-size: 12px;
         font-weight: 500;
         color: #4a5568;
-        margin-bottom: 4px;
+        margin-bottom: 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
 
       .input-field {
         width: 100%;
-        padding: 8px 12px;
+        padding: 6px 8px;
         border: 1px solid #e2e8f0;
         border-radius: 6px;
-        font-size: 13px;
+        font-size: 12px;
         transition: all 0.2s ease;
         background: white;
+        height: 32px;
       }
 
       .input-field:focus {
@@ -76,8 +80,8 @@
       }
 
       .add-button {
-        width: 30px;
-        height: 30px;
+        width: 24px;
+        height: 24px;
         border-radius: 50%;
         border: 2px solid #3b82f6;
         background: white;
@@ -86,9 +90,11 @@
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        font-size: 20px;
-        margin: 4px auto;
+        font-size: 16px;
+        margin: 2px auto;
         transition: all 0.2s ease;
+        padding: 0;
+        line-height: 1;
       }
 
       .add-button:hover {
@@ -101,15 +107,13 @@
         background-color: #ef4444;
         color: white;
         border: none;
-        padding: 8px 16px;
+        padding: 6px 12px;
         border-radius: 6px;
         cursor: pointer;
-        font-size: 14px;
+        font-size: 12px;
         transition: all 0.2s ease;
-      }
-
-      .delete-button:hover {
-        background-color: #dc2626;
+        height: 32px;
+        margin-top: 20px;
       }
 
       .notification {
