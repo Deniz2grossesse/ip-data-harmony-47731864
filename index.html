@@ -277,17 +277,17 @@
         newRuleLine.innerHTML = `
           <div class="rule-column">
             <label class="column-label">Source IP</label>
-            <input type="text" class="input-field sourceIp" placeholder="IP source" value="${type === 'source' ? '' : sourceIp}" oninput="validateInput(this, 'ip')">
+            <input type="text" class="input-field sourceIp" placeholder="10.10.10.10, 10.10.10.0/24, or 10.10.10.0-10.10.10.128" value="${type === 'source' ? '' : sourceIp}" oninput="validateInput(this, 'ip')" title="IP address, subnet (CIDR) or range. Can use commas or new lines.">
             <button onclick="duplicateField('source')" class="add-button">+</button>
           </div>
           <div class="rule-column">
             <label class="column-label">IP Destination</label>
-            <input type="text" class="input-field destinationIp" placeholder="IP destination" value="${type === 'destination' ? '' : destinationIp}" oninput="validateInput(this, 'ip')">
+            <input type="text" class="input-field destinationIp" placeholder="19.14.21.35 or subnet/range" value="${type === 'destination' ? '' : destinationIp}" oninput="validateInput(this, 'ip')" title="IP address, subnet (CIDR) or range. Can use commas or new lines.">
             <button onclick="duplicateField('destination')" class="add-button">+</button>
           </div>
           <div class="rule-column">
             <label class="column-label">Protocole</label>
-            <select class="input-field protocol">
+            <select class="input-field protocol" title="TCP for secure connections (HTTP, HTTPS, FTP...), UDP for quick communication (SNMP, DNS...), ICMP for network diagnostics">
               <option value="">Select</option>
               <option value="tcp" ${protocol === 'tcp' ? 'selected' : ''}>TCP</option>
               <option value="udp" ${protocol === 'udp' ? 'selected' : ''}>UDP</option>
@@ -297,17 +297,17 @@
           </div>
           <div class="rule-column">
             <label class="column-label">Service</label>
-            <input type="text" class="input-field service" placeholder="Service" value="${type === 'service' ? '' : service}">
+            <input type="text" class="input-field service" placeholder="HTTPS, SSH, RDP, SFTP..." value="${type === 'service' ? '' : service}" title="Enter service name (e.g., HTTPS, SSH, RDP, SFTP). For WebSocket, use Comments section.">
             <button onclick="duplicateField('service')" class="add-button">+</button>
           </div>
           <div class="rule-column">
             <label class="column-label">Port</label>
-            <input type="text" class="input-field port" placeholder="Port" value="${type === 'port' ? '' : port}" oninput="validateInput(this, 'port')">
+            <input type="text" class="input-field port" placeholder="Port (e.g., 443, 80) or range" value="${type === 'port' ? '' : port}" oninput="validateInput(this, 'port')" title="Enter port number (<65535) or range. Use 8 for ICMP.">
             <button onclick="duplicateField('port')" class="add-button">+</button>
           </div>
           <div class="rule-column">
             <label class="column-label">Authentication</label>
-            <select class="input-field columnK">
+            <select class="input-field columnK" title="Specify if this flow requires authentication">
               <option value="">Select</option>
               <option value="YES" ${columnK === 'YES' ? 'selected' : ''}>YES</option>
               <option value="NO" ${columnK === 'NO' ? 'selected' : ''}>NO</option>
@@ -316,7 +316,7 @@
           </div>
           <div class="rule-column">
             <label class="column-label">Flow encryption</label>
-            <select class="input-field columnL">
+            <select class="input-field columnL" title="Specify if this flow is encrypted">
               <option value="">Select</option>
               <option value="YES" ${columnL === 'YES' ? 'selected' : ''}>YES</option>
               <option value="NO" ${columnL === 'NO' ? 'selected' : ''}>NO</option>
@@ -711,17 +711,17 @@
       <div class="rule-line">
         <div class="rule-column">
           <label class="column-label">Source IP</label>
-          <input type="text" id="sourceIp" placeholder="IP source" class="input-field" oninput="validateInput(this, 'ip')">
+          <input type="text" id="sourceIp" placeholder="10.10.10.10, 10.10.10.0/24, or 10.10.10.0-10.10.10.128" class="input-field" oninput="validateInput(this, 'ip')" title="IP address, subnet (CIDR) or range. Can use commas or new lines.">
           <button onclick="duplicateField('source')" class="add-button">+</button>
         </div>
         <div class="rule-column">
           <label class="column-label">IP Destination</label>
-          <input type="text" id="destinationIp" placeholder="IP destination" class="input-field" oninput="validateInput(this, 'ip')">
+          <input type="text" id="destinationIp" placeholder="19.14.21.35 or subnet/range" class="input-field" oninput="validateInput(this, 'ip')" title="IP address, subnet (CIDR) or range. Can use commas or new lines.">
           <button onclick="duplicateField('destination')" class="add-button">+</button>
         </div>
         <div class="rule-column">
           <label class="column-label">Protocole</label>
-          <select id="protocol" class="input-field">
+          <select id="protocol" class="input-field" title="TCP for secure connections (HTTP, HTTPS, FTP...), UDP for quick communication (SNMP, DNS...), ICMP for network diagnostics">
             <option value="">Select</option>
             <option value="tcp">TCP</option>
             <option value="udp">UDP</option>
@@ -731,17 +731,17 @@
         </div>
         <div class="rule-column">
           <label class="column-label">Service</label>
-          <input type="text" id="service" placeholder="Service" class="input-field">
+          <input type="text" id="service" placeholder="HTTPS, SSH, RDP, SFTP..." class="input-field" title="Enter service name (e.g., HTTPS, SSH, RDP, SFTP). For WebSocket, use Comments section.">
           <button onclick="duplicateField('service')" class="add-button">+</button>
         </div>
         <div class="rule-column">
           <label class="column-label">Port</label>
-          <input type="text" id="port" placeholder="Port" class="input-field" oninput="validateInput(this, 'port')">
+          <input type="text" id="port" placeholder="Port (e.g., 443, 80) or range" class="input-field" oninput="validateInput(this, 'port')" title="Enter port number (<65535) or range. Use 8 for ICMP.">
           <button onclick="duplicateField('port')" class="add-button">+</button>
         </div>
         <div class="rule-column">
           <label class="column-label">Authentication</label>
-          <select id="columnK" class="input-field">
+          <select id="columnK" class="input-field" title="Specify if this flow requires authentication">
             <option value="">Select</option>
             <option value="YES">YES</option>
             <option value="NO">NO</option>
@@ -750,7 +750,7 @@
         </div>
         <div class="rule-column">
           <label class="column-label">Flow encryption</label>
-          <select id="columnL" class="input-field">
+          <select id="columnL" class="input-field" title="Specify if this flow is encrypted">
             <option value="">Select</option>
             <option value="YES">YES</option>
             <option value="NO">NO</option>
