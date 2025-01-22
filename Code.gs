@@ -177,3 +177,46 @@ function markDuplicateAsIgnored(lineNumber, referenceLine) {
     return { success: false, message: "Erreur lors du marquage: " + error.toString() };
   }
 }
+
+function generatePowerShellScript() {
+  const data = getSheetData();
+  let scriptContent = "# Script de test de connectivité réseau\n\n";
+  
+  data.forEach((row, index) => {
+    if (row[0] && !row[11]) { // Si la ligne est valide et non ignorée
+      const sourceIp = row[0];
+      const destIp = row[3];
+      const protocol = row[4];
+      const port = row[6];
+      
+      if (protocol && port) {
+        scriptContent += `# Test de la règle ${index + 1}\n`;
+        
+        if (protocol.toLowerCase() === 'tcp' || protocol.toLowerCase() === 'udp') {
+          scriptContent += `$result = Test-NetConnection -ComputerName ${destIp} -Port ${port} -InformationLevel "Detailed"\n`;
+          scriptContent += `if ($result.TcpTestSucceeded) {\n`;
+          scriptContent += `    Write-Host "Connexion réussie vers ${destIp}:${port} (${protocol})" -ForegroundColor Green\n`;
+          scriptContent += `} else {\n`;
+          scriptContent += `    Write-Host "Échec de la connexion vers ${destIp}:${port} (${protocol})" -ForegroundColor Red\n`;
+          scriptContent += `}\n\n`;
+        } else if (protocol.toLowerCase() === 'icmp') {
+          scriptContent += `$ping = Test-Connection -ComputerName ${destIp} -Count 1 -Quiet\n`;
+          scriptContent += `if ($ping) {\n`;
+          scriptContent += `    Write-Host "Ping réussi vers ${destIp}" -ForegroundColor Green\n`;
+          scriptContent += `} else {\n`;
+          scriptContent += `    Write-Host "Échec du ping vers ${destIp}" -ForegroundColor Red\n`;
+          scriptContent += `}\n\n`;
+        }
+      }
+    }
+  });
+  
+  return scriptContent;
+}
+
+function downloadPowerShellScript() {
+  const scriptContent = generatePowerShellScript();
+  return ContentService.createTextOutput(scriptContent)
+    .setMimeType(ContentService.MimeType.PLAIN_TEXT)
+    .setDownloadAsFile("test_connectivity.ps1");
+}

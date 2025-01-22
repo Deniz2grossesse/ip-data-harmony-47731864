@@ -585,6 +585,29 @@
         }
       }
 
+      function generateScript() {
+        google.script.run
+          .withSuccessHandler(function() {
+            const downloadUrl = google.script.host.origin + 
+              '/macros/s/' + 
+              google.script.id + 
+              '/exec?download=true';
+            
+            const link = document.createElement('a');
+            link.href = downloadUrl;
+            link.download = 'test_connectivity.ps1';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showNotification('Script PowerShell généré avec succès');
+          })
+          .withFailureHandler(function(error) {
+            showNotification('Erreur lors de la génération du script: ' + error, true);
+          })
+          .downloadPowerShellScript();
+      }
+
       document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('sourceIp').addEventListener('input', function() {
           validateInput(this, 'ip');
@@ -671,6 +694,7 @@
       <div style="display: flex; gap: 16px; justify-content: center; margin-top: 20px;">
         <button onclick="verifyDuplicates()" class="save-button" style="background-color: #4f46e5;">Vérifier</button>
         <button onclick="saveRules()" class="save-button">Valider</button>
+        <button onclick="generateScript()" class="save-button" style="background-color: #059669;">Générer Script</button>
       </div>
 
       <div id="duplicatesContainer" class="duplicates-container">
