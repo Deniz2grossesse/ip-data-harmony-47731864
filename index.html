@@ -588,18 +588,6 @@
       function generateScript() {
         google.script.run
           .withSuccessHandler(function() {
-            const downloadUrl = google.script.host.origin + 
-              '/macros/s/' + 
-              google.script.id + 
-              '/exec?download=true';
-            
-            const link = document.createElement('a');
-            link.href = downloadUrl;
-            link.download = 'test_connectivity.ps1';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
             showNotification('Script PowerShell généré avec succès');
           })
           .withFailureHandler(function(error) {
