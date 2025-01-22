@@ -284,6 +284,8 @@ function generatePowerShellScript() {
 
 function downloadPowerShellScript() {
   const scriptContent = generatePowerShellScript();
-  const blob = Utilities.newBlob(scriptContent, 'text/plain', 'test_connectivity.ps1');
-  return blob;
+  return ContentService
+    .createTextOutput(scriptContent)
+    .setMimeType(ContentService.MimeType.PLAIN_TEXT)
+    .downloadAsFile('test_connectivity.ps1');
 }
