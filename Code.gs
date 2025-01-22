@@ -14,19 +14,33 @@ function showNetworkRulesUI() {
   SpreadsheetApp.getUi().showModalDialog(html, 'Gestionnaire de règles réseau');
 }
 
+// Cache des validations pour éviter les calculs répétitifs
+const validationCache = new Map();
+
 function validateIpFormat(ip) {
+  if (validationCache.has(`ip_${ip}`)) {
+    return validationCache.get(`ip_${ip}`);
+  }
+  
   const regex = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/;
-  if (!regex.test(ip)) return false;
+  if (!regex.test(ip)) {
+    validationCache.set(`ip_${ip}`, false);
+    return false;
+  }
   
   const parts = ip.split('.');
-  return parts.every(part => {
+  const result = parts.every(part => {
     const num = parseInt(part);
     return num >= 0 && num <= 255;
   });
+  
+  validationCache.set(`ip_${ip}`, result);
+  return result;
 }
 
 function validateProtocol(protocol) {
-  return ['tcp', 'udp', 'icmp'].includes(protocol.toLowerCase());
+  const protocols = ['tcp', 'udp', 'icmp'];
+  return protocols.includes(protocol.toLowerCase());
 }
 
 function validatePort(port) {
@@ -40,18 +54,23 @@ function validateFourCharField(value) {
 
 function checkDuplicates() {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-  const data = sheet.getRange(12, 4, 200, 12).getValues(); // D12:O211
+  // Récupérer toutes les données en une seule fois
+  const data = sheet.getRange(12, 4, 200, 12).getValues();
   const duplicates = [];
+  const validRows = new Set();
   
-  for (let i = 0; i < data.length; i++) {
-    if (data[i][0] === "") continue; // Skip empty rows (colonne D)
-    if (data[i][11] !== "") continue; // Skip rows with comments in column O
-    
-    for (let j = i + 1; j < data.length; j++) {
-      if (data[j][0] === "") continue; // Skip empty rows (colonne D)
-      if (data[j][11] !== "") continue; // Skip rows with comments in column O
+  // Créer un index des lignes valides pour optimiser la recherche
+  data.forEach((row, index) => {
+    if (row[0] !== "" && row[11] === "") {
+      validRows.add(index);
+    }
+  });
+  
+  // Utiliser l'index pour vérifier uniquement les lignes valides
+  for (const i of validRows) {
+    for (const j of validRows) {
+      if (i >= j) continue;
       
-      // Vérification des doublons sur les colonnes D (IP source), G (IP destination), H (protocole) et J (port)
       if (data[i][0] === data[j][0] && // IP source (D)
           data[i][3] === data[j][3] && // IP destination (G)
           data[i][4] === data[j][4] && // Protocol (H)
@@ -70,15 +89,11 @@ function checkDuplicates() {
     }
   }
   
-  if (duplicates.length === 0) {
-    return { success: true, message: "Aucun doublon trouvé", duplicates: [] };
-  } else {
-    return { 
-      success: false, 
-      message: "Des doublons ont été trouvés",
-      duplicates: duplicates
-    };
-  }
+  return {
+    success: duplicates.length === 0,
+    message: duplicates.length === 0 ? "Aucun doublon trouvé" : "Des doublons ont été trouvés",
+    duplicates: duplicates
+  };
 }
 
 function saveData(data) {
@@ -86,7 +101,9 @@ function saveData(data) {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
     let nextRow = 12;
     
-    while (nextRow <= 211 && sheet.getRange(nextRow, 4).getValue() !== "") {
+    // Optimisation : Recherche de la prochaine ligne vide en une seule opération
+    const values = sheet.getRange(12, 4, 200, 1).getValues();
+    while (nextRow <= 211 && values[nextRow - 12][0] !== "") {
       nextRow++;
     }
     
@@ -94,26 +111,25 @@ function saveData(data) {
       return { success: false, message: "Impossible d'écrire après la ligne 211" };
     }
     
-    // Créer un tableau 2D pour stocker toutes les valeurs
-    const values = data.map(row => [
-      row.sourceIp,         // Colonne D
-      '',                   // Colonne E (vide)
-      '',                   // Colonne F (vide)
-      row.destinationIp,    // Colonne G
-      row.protocol,         // Colonne H
-      row.service,          // Colonne I
-      row.port,            // Colonne J
-      row.columnK,         // Colonne K
-      row.columnL,         // Colonne L
-      row.classification,   // Colonne M
-      row.fourCharCode,    // Colonne N
-      ''                    // Colonne O (vide)
+    // Préparation des données en mémoire
+    const newValues = data.map(row => [
+      row.sourceIp,         // D
+      '',                   // E
+      '',                   // F
+      row.destinationIp,    // G
+      row.protocol,         // H
+      row.service,         // I
+      row.port,            // J
+      row.columnK,         // K
+      row.columnL,         // L
+      row.classification,   // M
+      row.fourCharCode,    // N
+      ''                    // O
     ]);
     
-    // Écrire toutes les données en une seule opération
-    if (values.length > 0) {
-      const range = sheet.getRange(nextRow, 4, values.length, values[0].length);
-      range.setValues(values);
+    // Écriture en une seule opération
+    if (newValues.length > 0) {
+      sheet.getRange(nextRow, 4, newValues.length, newValues[0].length).setValues(newValues);
     }
     
     return { success: true, message: "Données enregistrées avec succès" };
@@ -135,7 +151,7 @@ function deleteRow(rowNumber) {
 function markDuplicateAsIgnored(lineNumber, referenceLine) {
   try {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-    sheet.getRange(lineNumber, 15).setValue(`Doublon avec la ligne ${referenceLine} - ignoré`); // Colonne O
+    sheet.getRange(lineNumber, 15).setValue(`Doublon avec la ligne ${referenceLine} - ignoré`);
     return { success: true, message: "Doublon marqué comme ignoré" };
   } catch (error) {
     return { success: false, message: "Erreur lors du marquage: " + error.toString() };
