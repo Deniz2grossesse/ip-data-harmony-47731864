@@ -17,15 +17,3 @@ function showNetworkRulesUI() {
 function include(filename) {
   return HtmlService.createHtmlOutputFromFile(filename).getContent();
 }
-
-function renderTopologyView(rules) {
-  const template = HtmlService.createTemplate(
-    `<div id="topology-root"></div>
-    <script>
-      const rules = <?= JSON.stringify(rules) ?>;
-      // React rendering logic would go here
-    </script>`
-  );
-  template.rules = rules;
-  return template.evaluate().getContent();
-}
