@@ -49,27 +49,25 @@ function getNetworkRules() {
 }
 
 function downloadPowerShellScript() {
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const newSheet = ss.insertSheet('Scripts PowerShell ' + new Date().toLocaleString());
   const ui = SpreadsheetApp.getUi();
   
-  // Afficher le message
-  ui.alert('Auto NES génère les scripts de tests');
+  // Afficher le message de début
+  ui.alert('Génération des scripts de test en cours...');
   
   // Récupérer les règles
   const rules = getNetworkRules();
   
-  // Effacer les anciennes données dans les colonnes A et B
-  sheet.getRange("A:B").clearContent();
-  
   // Écrire les en-têtes
-  sheet.getRange("A1").setValue("Source IP");
-  sheet.getRange("B1").setValue("Script PowerShell");
+  newSheet.getRange("A1").setValue("Source IP");
+  newSheet.getRange("B1").setValue("Script PowerShell");
   
   let row = 2; // Commencer à la ligne 2 après les en-têtes
   
   rules.forEach(rule => {
     // Écrire l'IP source
-    sheet.getRange(row, 1).setValue(rule.sourceIp);
+    newSheet.getRange(row, 1).setValue(rule.sourceIp);
     
     // Générer le script PowerShell en fonction du protocole
     let script = '';
@@ -82,11 +80,17 @@ function downloadPowerShellScript() {
     }
     
     // Écrire le script PowerShell
-    sheet.getRange(row, 2).setValue(script);
+    newSheet.getRange(row, 2).setValue(script);
     
     row++;
   });
   
+  // Ajuster la largeur des colonnes
+  newSheet.autoResizeColumns(1, 2);
+  
   // Message de confirmation
-  ui.alert('Scripts générés avec succès !');
+  ui.alert('Scripts générés avec succès dans un nouvel onglet !');
+  
+  // Activer le nouvel onglet
+  newSheet.activate();
 }
