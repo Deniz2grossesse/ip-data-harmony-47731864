@@ -195,6 +195,7 @@ function generatePowerShellScript() {
   scriptSheet.getRange('A1:B1').setFontWeight('bold');
   
   let currentRow = 2; // Commencer après les en-têtes
+  let scriptContent = "# Script de test de connectivité réseau\n\n";
   
   data.forEach((row) => {
     if (row[0] && !row[11]) { // Si la ligne est valide et non ignorée
@@ -205,16 +206,30 @@ function generatePowerShellScript() {
       
       if (protocol && port) {
         let scriptLine = '';
+        let sheetLine = '';
         
         if (protocol.toLowerCase() === 'tcp' || protocol.toLowerCase() === 'udp') {
-          scriptLine = `Test-NetConnection -ComputerName ${destIp} -Port ${port} -InformationLevel "Detailed"`;
+          sheetLine = `Test-NetConnection -ComputerName ${destIp} -Port ${port} -InformationLevel "Detailed"`;
+          scriptLine = `$result = Test-NetConnection -ComputerName ${destIp} -Port ${port} -InformationLevel "Detailed"\n`;
+          scriptLine += `if ($result.TcpTestSucceeded) {\n`;
+          scriptLine += `    Write-Host "Connexion réussie vers ${destIp}:${port} (${protocol})" -ForegroundColor Green\n`;
+          scriptLine += `} else {\n`;
+          scriptLine += `    Write-Host "Échec de la connexion vers ${destIp}:${port} (${protocol})" -ForegroundColor Red\n`;
+          scriptLine += `}\n`;
         } else if (protocol.toLowerCase() === 'icmp') {
-          scriptLine = `Test-Connection -ComputerName ${destIp} -Count 1 -Quiet`;
+          sheetLine = `Test-Connection -ComputerName ${destIp} -Count 1 -Quiet`;
+          scriptLine = `$ping = Test-Connection -ComputerName ${destIp} -Count 1 -Quiet\n`;
+          scriptLine += `if ($ping) {\n`;
+          scriptLine += `    Write-Host "Ping réussi vers ${destIp}" -ForegroundColor Green\n`;
+          scriptLine += `} else {\n`;
+          scriptLine += `    Write-Host "Échec du ping vers ${destIp}" -ForegroundColor Red\n`;
+          scriptLine += `}\n`;
         }
         
         if (scriptLine) {
-          scriptSheet.getRange(currentRow, 1, 1, 2).setValues([[sourceIp, scriptLine]]);
+          scriptSheet.getRange(currentRow, 1, 1, 2).setValues([[sourceIp, sheetLine]]);
           currentRow++;
+          scriptContent += `# Test depuis ${sourceIp}\n${scriptLine}\n`;
         }
       }
     }
@@ -223,15 +238,15 @@ function generatePowerShellScript() {
   // Ajuster la largeur des colonnes
   scriptSheet.autoResizeColumns(1, 2);
   
-  // Retourner un message de succès
   return {
     success: true,
-    message: "Une nouvelle feuille 'Scripts' a été créée avec les commandes PowerShell"
+    message: "Une nouvelle feuille 'Scripts' a été créée avec les commandes PowerShell",
+    content: scriptContent
   };
 }
 
 function downloadPowerShellScript() {
-  const scriptContent = generatePowerShellScript();
-  const blob = Utilities.newBlob(scriptContent, 'text/plain', 'test_connectivity.ps1');
+  const result = generatePowerShellScript();
+  const blob = Utilities.newBlob(result.content, 'text/plain', 'test_connectivity.ps1');
   return blob;
 }
