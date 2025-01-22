@@ -406,6 +406,7 @@
       function saveRules() {
         const rules = [];
         const ruleLines = document.querySelectorAll('.rule-line');
+        let hasValidationError = false;
         
         ruleLines.forEach(line => {
           const sourceIp = line.querySelector('.sourceIp, #sourceIp').value;
@@ -418,15 +419,30 @@
           const classification = line.querySelector('.classification, #classification').value;
           const fourCharCode = line.querySelector('.fourCharCode, #fourCharCode').value;
           
+          // Vérification des champs obligatoires
           if (sourceIp && destinationIp && protocol && port) {
-            if (!validateIpFormat(sourceIp) || !validateIpFormat(destinationIp) || !validatePort(port)) {
-              showNotification('Veuillez corriger les erreurs de format avant de sauvegarder', true);
+            // Validation des formats
+            if (!validateIpFormat(sourceIp)) {
+              showNotification('IP source invalide: ' + sourceIp, true);
+              hasValidationError = true;
+              return;
+            }
+            if (!validateIpFormat(destinationIp)) {
+              showNotification('IP destination invalide: ' + destinationIp, true);
+              hasValidationError = true;
+              return;
+            }
+            if (!validatePort(port)) {
+              showNotification('Port invalide: ' + port, true);
+              hasValidationError = true;
               return;
             }
             if (fourCharCode && !validateFourCharField(fourCharCode)) {
               showNotification('Le code doit contenir exactement 4 caractères', true);
+              hasValidationError = true;
               return;
             }
+
             rules.push({
               sourceIp,
               destinationIp,
@@ -441,19 +457,40 @@
           }
         });
         
+        if (hasValidationError) {
+          return;
+        }
+        
         if (rules.length === 0) {
           showNotification('Aucune donnée valide à sauvegarder', true);
           return;
         }
         
+        // Vérification des doublons avant la sauvegarde
         google.script.run
-          .withSuccessHandler(function(response) {
-            showNotification(response.message, !response.success);
+          .withSuccessHandler(function(duplicateResponse) {
+            if (duplicateResponse.success) {
+              // Si pas de doublons, on sauvegarde
+              google.script.run
+                .withSuccessHandler(function(response) {
+                  showNotification(response.message, !response.success);
+                  if (response.success) {
+                    verifyDuplicates(); // Rafraîchir la liste des doublons après la sauvegarde
+                  }
+                })
+                .withFailureHandler(function(error) {
+                  showNotification('Erreur lors de la sauvegarde: ' + error, true);
+                })
+                .saveData(rules);
+            } else {
+              showNotification('Des doublons ont été détectés. Veuillez les vérifier avant de sauvegarder.', true);
+              verifyDuplicates();
+            }
           })
           .withFailureHandler(function(error) {
-            showNotification('Erreur lors de la sauvegarde: ' + error, true);
+            showNotification('Erreur lors de la vérification des doublons: ' + error, true);
           })
-          .saveData(rules);
+          .checkDuplicates();
       }
 
       function verifyDuplicates() {
