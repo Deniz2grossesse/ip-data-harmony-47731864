@@ -11,7 +11,6 @@ function showNetworkRulesUI() {
     .setTitle('Network Rules Manager')
     .setWidth(1000)
     .setHeight(600);
-  SpreadsheetApp.getUi().showModalDialog(html, 'Gestionnaire de règles réseau');
 }
 
 // Cache des validations pour éviter les calculs répétitifs
@@ -189,22 +188,20 @@ function getDraftData() {
       const row = data[i];
       const [sourceIp, , , destIp, protocol, service, port, columnK, columnL, classification, fourCharCode] = row;
       
-      // Si au moins un champ est rempli mais pas tous
+      // Si au moins un champ est rempli
       if (sourceIp || destIp || protocol || service || port || columnK || columnL || classification || fourCharCode) {
-        if (!sourceIp || !destIp || !protocol || !service || !port || !columnK || !columnL || !classification || !fourCharCode) {
-          drafts.push({
-            lineNumber: i + 12,
-            sourceIp: sourceIp || "N/A",
-            destinationIp: destIp || "N/A",
-            protocol: protocol || "N/A",
-            service: service || "N/A",
-            port: port || "N/A",
-            columnK: columnK || "N/A",
-            columnL: columnL || "N/A",
-            classification: classification || "N/A",
-            fourCharCode: fourCharCode || "N/A"
-          });
-        }
+        drafts.push({
+          lineNumber: i + 12,
+          sourceIp: sourceIp || "N/A",
+          destinationIp: destIp || "N/A",
+          protocol: protocol || "N/A",
+          service: service || "N/A",
+          port: port || "N/A",
+          columnK: columnK || "N/A",
+          columnL: columnL || "N/A",
+          classification: classification || "N/A",
+          fourCharCode: fourCharCode || "N/A"
+        });
       }
     }
     

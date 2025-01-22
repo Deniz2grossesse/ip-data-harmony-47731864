@@ -661,78 +661,22 @@
               // Pour chaque brouillon supplémentaire, créer une nouvelle ligne
               for (let i = 1; i < drafts.length; i++) {
                 const draft = drafts[i];
-                const container = document.querySelector('.container');
-                const newRuleLine = document.createElement('div');
-                newRuleLine.className = 'rule-line';
+                duplicateField('source'); // Crée une nouvelle ligne
                 
-                newRuleLine.innerHTML = `
-                  <div class="rule-column">
-                    <label class="column-label">Source IP</label>
-                    <input type="text" class="input-field sourceIp" placeholder="IP source" value="${draft.sourceIp === "N/A" ? "" : draft.sourceIp}" oninput="validateInput(this, 'ip')">
-                    <button onclick="duplicateField('source')" class="add-button">+</button>
-                  </div>
-                  <div class="rule-column">
-                    <label class="column-label">IP Destination</label>
-                    <input type="text" class="input-field destinationIp" placeholder="IP destination" value="${draft.destinationIp === "N/A" ? "" : draft.destinationIp}" oninput="validateInput(this, 'ip')">
-                    <button onclick="duplicateField('destination')" class="add-button">+</button>
-                  </div>
-                  <div class="rule-column">
-                    <label class="column-label">Protocole</label>
-                    <select class="input-field protocol">
-                      <option value="">Select</option>
-                      <option value="tcp" ${draft.protocol.toLowerCase() === 'tcp' ? 'selected' : ''}>TCP</option>
-                      <option value="udp" ${draft.protocol.toLowerCase() === 'udp' ? 'selected' : ''}>UDP</option>
-                      <option value="icmp" ${draft.protocol.toLowerCase() === 'icmp' ? 'selected' : ''}>ICMP</option>
-                    </select>
-                    <button onclick="duplicateField('protocol')" class="add-button">+</button>
-                  </div>
-                  <div class="rule-column">
-                    <label class="column-label">Service</label>
-                    <input type="text" class="input-field service" placeholder="Service" value="${draft.service === "N/A" ? "" : draft.service}">
-                    <button onclick="duplicateField('service')" class="add-button">+</button>
-                  </div>
-                  <div class="rule-column">
-                    <label class="column-label">Port</label>
-                    <input type="text" class="input-field port" placeholder="Port" value="${draft.port === "N/A" ? "" : draft.port}" oninput="validateInput(this, 'port')">
-                    <button onclick="duplicateField('port')" class="add-button">+</button>
-                  </div>
-                  <div class="rule-column">
-                    <label class="column-label">Authentication</label>
-                    <select class="input-field columnK">
-                      <option value="">Select</option>
-                      <option value="YES" ${draft.columnK === 'YES' ? 'selected' : ''}>YES</option>
-                      <option value="NO" ${draft.columnK === 'NO' ? 'selected' : ''}>NO</option>
-                    </select>
-                    <button onclick="duplicateField('columnK')" class="add-button">+</button>
-                  </div>
-                  <div class="rule-column">
-                    <label class="column-label">Flow encryption</label>
-                    <select class="input-field columnL">
-                      <option value="">Select</option>
-                      <option value="YES" ${draft.columnL === 'YES' ? 'selected' : ''}>YES</option>
-                      <option value="NO" ${draft.columnL === 'NO' ? 'selected' : ''}>NO</option>
-                    </select>
-                    <button onclick="duplicateField('columnL')" class="add-button">+</button>
-                  </div>
-                  <div class="rule-column">
-                    <label class="column-label">Classification</label>
-                    <select class="input-field classification">
-                      <option value="">Select</option>
-                      <option value="Amber" ${draft.classification === 'Amber' ? 'selected' : ''}>Amber</option>
-                      <option value="More senssitive data" ${draft.classification === 'More senssitive data' ? 'selected' : ''}>More senssitive data</option>
-                    </select>
-                    <button onclick="duplicateField('classification')" class="add-button">+</button>
-                  </div>
-                  <div class="rule-column">
-                    <label class="column-label">APP code</label>
-                    <input type="text" class="input-field fourCharCode" placeholder="Code (4 chars)" value="${draft.fourCharCode === "N/A" ? "" : draft.fourCharCode}" oninput="validateInput(this, 'fourChar')" maxlength="4">
-                    <button onclick="duplicateField('fourCharCode')" class="add-button">+</button>
-                  </div>
-                  <button onclick="deleteLine(this)" class="delete-button">Supprimer</button>
-                `;
-
-                const saveButton = document.querySelector('.save-button');
-                container.insertBefore(newRuleLine, saveButton.parentElement);
+                // Récupérer la dernière ligne créée
+                const ruleLines = document.getElementsByClassName('rule-line');
+                const lastLine = ruleLines[ruleLines.length - 1];
+                
+                // Remplir les champs de la nouvelle ligne
+                lastLine.querySelector('.sourceIp').value = draft.sourceIp === "N/A" ? "" : draft.sourceIp;
+                lastLine.querySelector('.destinationIp').value = draft.destinationIp === "N/A" ? "" : draft.destinationIp;
+                lastLine.querySelector('.protocol').value = draft.protocol === "N/A" ? "" : draft.protocol.toLowerCase();
+                lastLine.querySelector('.service').value = draft.service === "N/A" ? "" : draft.service;
+                lastLine.querySelector('.port').value = draft.port === "N/A" ? "" : draft.port;
+                lastLine.querySelector('.columnK').value = draft.columnK === "N/A" ? "" : draft.columnK;
+                lastLine.querySelector('.columnL').value = draft.columnL === "N/A" ? "" : draft.columnL;
+                lastLine.querySelector('.classification').value = draft.classification === "N/A" ? "" : draft.classification;
+                lastLine.querySelector('.fourCharCode').value = draft.fourCharCode === "N/A" ? "" : draft.fourCharCode;
               }
               
               showNotification(`${drafts.length} brouillon(s) chargé(s)`);
