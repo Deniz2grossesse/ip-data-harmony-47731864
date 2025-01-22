@@ -285,6 +285,7 @@
           </div>
           <div class="rule-column">
             <select class="input-field protocol">
+              <option value="">Select</option>
               <option value="tcp" ${protocol === 'tcp' ? 'selected' : ''}>TCP</option>
               <option value="udp" ${protocol === 'udp' ? 'selected' : ''}>UDP</option>
               <option value="icmp" ${protocol === 'icmp' ? 'selected' : ''}>ICMP</option>
@@ -573,6 +574,7 @@
         <div class="rule-column">
           <label class="column-label">Protocole</label>
           <select id="protocol" class="input-field">
+            <option value="">Select</option>
             <option value="tcp">TCP</option>
             <option value="udp">UDP</option>
             <option value="icmp">ICMP</option>
