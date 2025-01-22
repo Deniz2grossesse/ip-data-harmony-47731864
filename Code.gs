@@ -253,6 +253,14 @@ function generateTopology() {
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   let topoSheet = spreadsheet.getSheetByName('Topologie');
   
+  // Trouver la dernière ligne remplie
+  let lastFilledRow = 12;
+  for (let i = 0; i < data.length; i++) {
+    if (data[i][0]) { // Si l'IP source existe
+      lastFilledRow = i + 12;
+    }
+  }
+  
   // Créer la feuille si elle n'existe pas
   if (!topoSheet) {
     topoSheet = spreadsheet.insertSheet('Topologie');
@@ -269,7 +277,9 @@ function generateTopology() {
   let row = 2;
   const connections = new Set();
   
-  data.forEach((line) => {
+  // Ne traiter que les lignes de 12 jusqu'à lastFilledRow
+  for (let i = 0; i <= lastFilledRow - 12; i++) {
+    const line = data[i];
     if (line[0] && line[3] && !line[11]) { // Si IP source et destination existent et la ligne n'est pas ignorée
       const connection = `${line[0]}-${line[3]}`;
       if (!connections.has(connection)) {
@@ -280,7 +290,7 @@ function generateTopology() {
         row++;
       }
     }
-  });
+  }
   
   // Formater la feuille
   topoSheet.autoResizeColumns(1, 3);
