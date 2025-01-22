@@ -4,6 +4,15 @@
     document.body.classList.toggle('dark-mode');
     const isDarkMode = document.body.classList.contains('dark-mode');
     localStorage.setItem('darkMode', isDarkMode);
+    
+    // Mise à jour des styles pour le mode sombre
+    if (isDarkMode) {
+      document.querySelector('.container').style.backgroundColor = 'rgba(30, 41, 59, 0.9)';
+      document.querySelector('.container').style.color = '#ffffff';
+    } else {
+      document.querySelector('.container').style.backgroundColor = 'rgba(255, 255, 255, 0.9)';
+      document.querySelector('.container').style.color = '#000000';
+    }
   }
 
   // Initialisation du thème
@@ -11,6 +20,8 @@
     const isDarkMode = localStorage.getItem('darkMode') === 'true';
     if (isDarkMode) {
       document.body.classList.add('dark-mode');
+      document.querySelector('.container').style.backgroundColor = 'rgba(30, 41, 59, 0.9)';
+      document.querySelector('.container').style.color = '#ffffff';
     }
   }
 
