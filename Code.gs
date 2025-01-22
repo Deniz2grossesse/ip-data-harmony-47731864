@@ -181,6 +181,23 @@ function markDuplicateAsIgnored(lineNumber, referenceLine) {
 function generatePowerShellScript() {
   const data = getSheetData();
   let scriptContent = "# Script de test de connectivité réseau\n\n";
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  let scriptSheet = spreadsheet.getSheetByName('Scripts');
+  
+  // Créer la feuille si elle n'existe pas
+  if (!scriptSheet) {
+    scriptSheet = spreadsheet.insertSheet('Scripts');
+    scriptSheet.getRange('A1').setValue('Ligne');
+    scriptSheet.getRange('B1').setValue('Script');
+  } else {
+    // Effacer le contenu existant sauf les en-têtes
+    const lastRow = scriptSheet.getLastRow();
+    if (lastRow > 1) {
+      scriptSheet.getRange(2, 1, lastRow - 1, 2).clearContent();
+    }
+  }
+  
+  let currentRow = 2; // Commencer après les en-têtes
   
   data.forEach((row, index) => {
     if (row[0] && !row[11]) { // Si la ligne est valide et non ignorée
@@ -190,26 +207,37 @@ function generatePowerShellScript() {
       const port = row[6];
       
       if (protocol && port) {
-        scriptContent += `# Test de la règle ${index + 1}\n`;
+        let scriptLine = '';
         
         if (protocol.toLowerCase() === 'tcp' || protocol.toLowerCase() === 'udp') {
-          scriptContent += `$result = Test-NetConnection -ComputerName ${destIp} -Port ${port} -InformationLevel "Detailed"\n`;
-          scriptContent += `if ($result.TcpTestSucceeded) {\n`;
-          scriptContent += `    Write-Host "Connexion réussie vers ${destIp}:${port} (${protocol})" -ForegroundColor Green\n`;
-          scriptContent += `} else {\n`;
-          scriptContent += `    Write-Host "Échec de la connexion vers ${destIp}:${port} (${protocol})" -ForegroundColor Red\n`;
-          scriptContent += `}\n\n`;
+          scriptLine = `$result = Test-NetConnection -ComputerName ${destIp} -Port ${port} -InformationLevel "Detailed"\n`;
+          scriptLine += `if ($result.TcpTestSucceeded) {\n`;
+          scriptLine += `    Write-Host "Connexion réussie vers ${destIp}:${port} (${protocol})" -ForegroundColor Green\n`;
+          scriptLine += `} else {\n`;
+          scriptLine += `    Write-Host "Échec de la connexion vers ${destIp}:${port} (${protocol})" -ForegroundColor Red\n`;
+          scriptLine += `}\n`;
         } else if (protocol.toLowerCase() === 'icmp') {
-          scriptContent += `$ping = Test-Connection -ComputerName ${destIp} -Count 1 -Quiet\n`;
-          scriptContent += `if ($ping) {\n`;
-          scriptContent += `    Write-Host "Ping réussi vers ${destIp}" -ForegroundColor Green\n`;
-          scriptContent += `} else {\n`;
-          scriptContent += `    Write-Host "Échec du ping vers ${destIp}" -ForegroundColor Red\n`;
-          scriptContent += `}\n\n`;
+          scriptLine = `$ping = Test-Connection -ComputerName ${destIp} -Count 1 -Quiet\n`;
+          scriptLine += `if ($ping) {\n`;
+          scriptLine += `    Write-Host "Ping réussi vers ${destIp}" -ForegroundColor Green\n`;
+          scriptLine += `} else {\n`;
+          scriptLine += `    Write-Host "Échec du ping vers ${destIp}" -ForegroundColor Red\n`;
+          scriptLine += `}\n`;
+        }
+        
+        if (scriptLine) {
+          scriptSheet.getRange(currentRow, 1).setValue(index + 12); // +12 car les données commencent à la ligne 12
+          scriptSheet.getRange(currentRow, 2).setValue(scriptLine);
+          currentRow++;
+          
+          scriptContent += `# Test de la règle ${index + 1}\n${scriptLine}\n`;
         }
       }
     }
   });
+  
+  // Ajuster la largeur des colonnes
+  scriptSheet.autoResizeColumns(1, 2);
   
   return scriptContent;
 }
