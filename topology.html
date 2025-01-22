@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script>
+      google.charts.load('current', {'packages':['sankey']});
+      
+      function drawTopology(data) {
+        const container = document.getElementById('topology');
+        const chart = new google.visualization.Sankey(container);
+        
+        // Préparation des données
+        const dataTable = new google.visualization.DataTable();
+        dataTable.addColumn('string', 'From');
+        dataTable.addColumn('string', 'To');
+        dataTable.addColumn('number', 'Weight');
+        dataTable.addColumn({type: 'string', role: 'style'});
+        
+        // Création d'un map pour stocker les couleurs uniques des destinations
+        const destinationColors = new Map();
+        let colorIndex = 0;
+        const colors = ['#FF4081', '#7C4DFF', '#00BCD4', '#FFC107', '#8BC34A'];
+        
+        // Traitement des données
+        data.forEach(rule => {
+          if (!destinationColors.has(rule.destinationIp)) {
+            destinationColors.set(rule.destinationIp, colors[colorIndex % colors.length]);
+            colorIndex++;
+          }
+          
+          const color = destinationColors.get(rule.destinationIp);
+          dataTable.addRow([
+            rule.sourceIp,
+            rule.destinationIp,
+            1,
+            'color: ' + color
+          ]);
+        });
+
+        // Options du graphique
+        const options = {
+          width: 900,
+          height: 600,
+          sankey: {
+            node: {
+              colors: ['#000000'],
+              label: {
+                fontSize: 14,
+                color: '#000000'
+              }
+            },
+            link: {
+              colorMode: 'gradient',
+              fillOpacity: 0.8
+            }
+          }
+        };
+
+        chart.draw(dataTable, options);
+      }
+
+      // Fonction pour récupérer et afficher les données
+      function loadTopologyData() {
+        google.script.run
+          .withSuccessHandler(drawTopology)
+          .getNetworkRules();
+      }
+    </script>
+    <style>
+      #topology {
+        width: 100%;
+        height: 100vh;
+        padding: 20px;
+      }
+    </style>
+  </head>
+  <body onload="loadTopologyData()">
+    <div id="topology"></div>
+  </body>
+</html>
