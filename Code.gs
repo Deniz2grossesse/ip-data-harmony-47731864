@@ -92,10 +92,14 @@ function saveData(data) {
     
     data.forEach(row => {
       if (nextRow <= 211) {
+        sheet.getRange(nextRow, 3).setValue(row.sourceName); // Colonne C
         sheet.getRange(nextRow, 4).setValue(row.sourceIp); // Colonne D
+        sheet.getRange(nextRow, 6).setValue(row.destinationName); // Colonne F
         sheet.getRange(nextRow, 7).setValue(row.destinationIp); // Colonne G
         sheet.getRange(nextRow, 8).setValue(row.protocol); // Colonne H
         sheet.getRange(nextRow, 10).setValue(row.port); // Colonne J
+        sheet.getRange(nextRow, 11).setValue(row.columnK); // Colonne K
+        sheet.getRange(nextRow, 12).setValue(row.columnL); // Colonne L
         nextRow++;
       }
     });
