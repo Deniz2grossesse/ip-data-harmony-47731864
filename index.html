@@ -296,7 +296,7 @@
             <button onclick="duplicateField('port')" class="add-button">+</button>
           </div>
           <div class="rule-column">
-            <label>Authentication</label>
+            <label class="column-label">Authentication</label>
             <select class="input-field columnK">
               <option value="">Select</option>
               <option value="YES" ${columnK === 'YES' ? 'selected' : ''}>YES</option>
@@ -305,7 +305,7 @@
             <button onclick="duplicateField('columnK')" class="add-button">+</button>
           </div>
           <div class="rule-column">
-            <label>Flow encryption</label>
+            <label class="column-label">Flow encryption</label>
             <select class="input-field columnL">
               <option value="">Select</option>
               <option value="YES" ${columnL === 'YES' ? 'selected' : ''}>YES</option>
@@ -314,7 +314,7 @@
             <button onclick="duplicateField('columnL')" class="add-button">+</button>
           </div>
           <div class="rule-column">
-            <label>Classification</label>
+            <label class="column-label">Classification</label>
             <select class="input-field classification">
               <option value="">Select</option>
               <option value="Amber" ${classification === 'Amber' ? 'selected' : ''}>Amber</option>
@@ -586,7 +586,7 @@
           <button onclick="duplicateField('port')" class="add-button">+</button>
         </div>
         <div class="rule-column">
-          <label>Authentication</label>
+          <label class="column-label">Authentication</label>
           <select id="columnK" class="input-field">
             <option value="">Select</option>
             <option value="YES">YES</option>
@@ -595,7 +595,7 @@
           <button onclick="duplicateField('columnK')" class="add-button">+</button>
         </div>
         <div class="rule-column">
-          <label>Flow encryption</label>
+          <label class="column-label">Flow encryption</label>
           <select id="columnL" class="input-field">
             <option value="">Select</option>
             <option value="YES">YES</option>
@@ -604,7 +604,7 @@
           <button onclick="duplicateField('columnL')" class="add-button">+</button>
         </div>
         <div class="rule-column">
-          <label>Classification</label>
+          <label class="column-label">Classification</label>
           <select id="classification" class="input-field">
             <option value="">Select</option>
             <option value="Amber">Amber</option>
@@ -613,7 +613,7 @@
           <button onclick="duplicateField('classification')" class="add-button">+</button>
         </div>
         <div class="rule-column">
-          <label>Code (4 chars)</label>
+          <label class="column-label">Code (4 chars)</label>
           <input type="text" id="fourCharCode" placeholder="Code (4 chars)" class="input-field" oninput="validateInput(this, 'fourChar')" maxlength="4">
           <button onclick="duplicateField('fourCharCode')" class="add-button">+</button>
         </div>
