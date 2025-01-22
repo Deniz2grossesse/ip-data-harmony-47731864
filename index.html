@@ -21,7 +21,7 @@
       }
 
       .container {
-        max-width: 1000px;
+        max-width: 1200px;
         margin: 0 auto;
         background: rgba(255, 255, 255, 0.9);
         padding: 2rem;
@@ -30,10 +30,18 @@
         backdrop-filter: blur(10px);
       }
 
+      .app-title {
+        text-align: center;
+        font-size: 24px;
+        font-weight: 600;
+        margin-bottom: 2rem;
+        color: #1a365d;
+      }
+
       .rule-line {
         display: grid;
-        grid-template-columns: repeat(5, 1fr) auto;
-        gap: 16px;
+        grid-template-columns: repeat(9, 1fr);
+        gap: 12px;
         margin-bottom: 24px;
         align-items: start;
       }
@@ -41,15 +49,22 @@
       .rule-column {
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: 4px;
+      }
+
+      .column-label {
+        font-size: 14px;
+        font-weight: 500;
+        color: #4a5568;
+        margin-bottom: 4px;
       }
 
       .input-field {
         width: 100%;
-        padding: 10px 16px;
+        padding: 8px 12px;
         border: 1px solid #e2e8f0;
-        border-radius: 8px;
-        font-size: 14px;
+        border-radius: 6px;
+        font-size: 13px;
         transition: all 0.2s ease;
         background: white;
       }
@@ -266,7 +281,6 @@
           </div>
           <div class="rule-column">
             <select class="input-field protocol">
-              <option value="">Protocol</option>
               <option value="tcp" ${protocol === 'tcp' ? 'selected' : ''}>TCP</option>
               <option value="udp" ${protocol === 'udp' ? 'selected' : ''}>UDP</option>
               <option value="icmp" ${protocol === 'icmp' ? 'selected' : ''}>ICMP</option>
@@ -540,18 +554,21 @@
   </head>
   <body>
     <div class="container">
+      <h1 class="app-title">Application</h1>
       <div class="rule-line">
         <div class="rule-column">
+          <label class="column-label">Source IP</label>
           <input type="text" id="sourceIp" placeholder="IP source" class="input-field" oninput="validateInput(this, 'ip')">
           <button onclick="duplicateField('source')" class="add-button">+</button>
         </div>
         <div class="rule-column">
+          <label class="column-label">IP Destination</label>
           <input type="text" id="destinationIp" placeholder="IP destination" class="input-field" oninput="validateInput(this, 'ip')">
           <button onclick="duplicateField('destination')" class="add-button">+</button>
         </div>
         <div class="rule-column">
+          <label class="column-label">Protocole</label>
           <select id="protocol" class="input-field">
-            <option value="">Protocol</option>
             <option value="tcp">TCP</option>
             <option value="udp">UDP</option>
             <option value="icmp">ICMP</option>
@@ -559,10 +576,12 @@
           <button onclick="duplicateField('protocol')" class="add-button">+</button>
         </div>
         <div class="rule-column">
+          <label class="column-label">Service</label>
           <input type="text" id="service" placeholder="Service" class="input-field">
           <button onclick="duplicateField('service')" class="add-button">+</button>
         </div>
         <div class="rule-column">
+          <label class="column-label">Port</label>
           <input type="text" id="port" placeholder="Port" class="input-field" oninput="validateInput(this, 'port')">
           <button onclick="duplicateField('port')" class="add-button">+</button>
         </div>
@@ -594,6 +613,7 @@
           <button onclick="duplicateField('classification')" class="add-button">+</button>
         </div>
         <div class="rule-column">
+          <label>Code (4 chars)</label>
           <input type="text" id="fourCharCode" placeholder="Code (4 chars)" class="input-field" oninput="validateInput(this, 'fourChar')" maxlength="4">
           <button onclick="duplicateField('fourCharCode')" class="add-button">+</button>
         </div>
