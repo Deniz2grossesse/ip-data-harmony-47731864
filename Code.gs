@@ -94,20 +94,28 @@ function saveData(data) {
       return { success: false, message: "Impossible d'écrire après la ligne 211" };
     }
     
-    data.forEach(row => {
-      if (nextRow <= 211) {
-        sheet.getRange(nextRow, 4).setValue(row.sourceIp); // Colonne D
-        sheet.getRange(nextRow, 7).setValue(row.destinationIp); // Colonne G
-        sheet.getRange(nextRow, 8).setValue(row.protocol); // Colonne H
-        sheet.getRange(nextRow, 9).setValue(row.service); // Colonne I
-        sheet.getRange(nextRow, 10).setValue(row.port); // Colonne J
-        sheet.getRange(nextRow, 11).setValue(row.columnK); // Colonne K (Authentication)
-        sheet.getRange(nextRow, 12).setValue(row.columnL); // Colonne L (Flow encryption)
-        sheet.getRange(nextRow, 13).setValue(row.classification); // Colonne M
-        sheet.getRange(nextRow, 14).setValue(row.fourCharCode); // Colonne N
-        nextRow++;
-      }
-    });
+    // Créer un tableau 2D pour stocker toutes les valeurs
+    const values = data.map(row => [
+      row.sourceIp,         // Colonne D
+      '',                   // Colonne E (vide)
+      '',                   // Colonne F (vide)
+      row.destinationIp,    // Colonne G
+      row.protocol,         // Colonne H
+      row.service,          // Colonne I
+      row.port,            // Colonne J
+      row.columnK,         // Colonne K
+      row.columnL,         // Colonne L
+      row.classification,   // Colonne M
+      row.fourCharCode,    // Colonne N
+      ''                    // Colonne O (vide)
+    ]);
+    
+    // Écrire toutes les données en une seule opération
+    if (values.length > 0) {
+      const range = sheet.getRange(nextRow, 4, values.length, values[0].length);
+      range.setValues(values);
+    }
+    
     return { success: true, message: "Données enregistrées avec succès" };
   } catch (error) {
     return { success: false, message: "Erreur lors de l'enregistrement: " + error.toString() };
