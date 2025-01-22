@@ -26,7 +26,7 @@ function validateIpFormat(ip) {
 }
 
 function validateProtocol(protocol) {
-  return ['ssh', 'https', 'ping', 'smtp'].includes(protocol);
+  return ['tcp', 'udp', 'icmp'].includes(protocol.toLowerCase());
 }
 
 function validatePort(port) {
@@ -36,29 +36,29 @@ function validatePort(port) {
 
 function checkDuplicates() {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-  const data = sheet.getRange(11, 1, 140, 5).getValues(); // Ajout de la colonne E
+  const data = sheet.getRange(12, 4, 200, 12).getValues(); // D12:O211
   const duplicates = [];
   
   for (let i = 0; i < data.length; i++) {
     if (data[i][0] === "") continue; // Skip empty rows
-    if (data[i][4] !== "") continue; // Skip rows with comments in column E
+    if (data[i][11] !== "") continue; // Skip rows with comments in column O
     
     for (let j = i + 1; j < data.length; j++) {
       if (data[j][0] === "") continue; // Skip empty rows
-      if (data[j][4] !== "") continue; // Skip rows with comments in column E
+      if (data[j][11] !== "") continue; // Skip rows with comments in column O
       
-      if (data[i][0] === data[j][0] && 
-          data[i][1] === data[j][1] && 
-          data[i][2] === data[j][2] && 
-          data[i][3] === data[j][3]) {
+      if (data[i][0] === data[j][0] && // IP source (D)
+          data[i][3] === data[j][3] && // IP destination (G)
+          data[i][4] === data[j][4] && // Protocol (H)
+          data[i][6] === data[j][6]) { // Port (J)
         duplicates.push({
-          line1: i + 11,
-          line2: j + 11,
+          line1: i + 12,
+          line2: j + 12,
           data: {
             sourceIp: data[i][0],
-            destinationIp: data[i][1],
-            protocol: data[i][2],
-            port: data[i][3]
+            destinationIp: data[i][3],
+            protocol: data[i][4],
+            port: data[i][6]
           }
         });
       }
@@ -79,22 +79,22 @@ function checkDuplicates() {
 function saveData(data) {
   try {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-    let nextRow = 11;
+    let nextRow = 12;
     
-    while (nextRow <= 150 && sheet.getRange(nextRow, 1).getValue() !== "") {
+    while (nextRow <= 211 && sheet.getRange(nextRow, 4).getValue() !== "") {
       nextRow++;
     }
     
-    if (nextRow > 150) {
-      return { success: false, message: "Impossible d'écrire après la ligne 150" };
+    if (nextRow > 211) {
+      return { success: false, message: "Impossible d'écrire après la ligne 211" };
     }
     
     data.forEach(row => {
-      if (nextRow <= 150) {
-        sheet.getRange(nextRow, 1).setValue(row.sourceIp);
-        sheet.getRange(nextRow, 2).setValue(row.destinationIp);
-        sheet.getRange(nextRow, 3).setValue(row.protocol);
-        sheet.getRange(nextRow, 4).setValue(row.port);
+      if (nextRow <= 211) {
+        sheet.getRange(nextRow, 4).setValue(row.sourceIp); // Colonne D
+        sheet.getRange(nextRow, 7).setValue(row.destinationIp); // Colonne G
+        sheet.getRange(nextRow, 8).setValue(row.protocol); // Colonne H
+        sheet.getRange(nextRow, 10).setValue(row.port); // Colonne J
         nextRow++;
       }
     });
@@ -117,7 +117,7 @@ function deleteRow(rowNumber) {
 function markDuplicateAsIgnored(lineNumber, referenceLine) {
   try {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-    sheet.getRange(lineNumber, 5).setValue(`Doublon avec la ligne ${referenceLine} - ignoré`);
+    sheet.getRange(lineNumber, 15).setValue(`Doublon avec la ligne ${referenceLine} - ignoré`); // Colonne O
     return { success: true, message: "Doublon marqué comme ignoré" };
   } catch (error) {
     return { success: false, message: "Erreur lors du marquage: " + error.toString() };
