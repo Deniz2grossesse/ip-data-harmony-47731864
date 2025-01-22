@@ -247,21 +247,24 @@ function generatePowerShellScript() {
       const port = row[6];
       
       if (protocol && port) {
-        let scriptLine = '';
+        let scriptLine = `# Test depuis ${sourceIp} vers ${destIp}\n`;
+        scriptLine += `# Exécuter ce script depuis la machine ${sourceIp}\n\n`;
         
         if (protocol.toLowerCase() === 'tcp' || protocol.toLowerCase() === 'udp') {
-          scriptLine = `$result = Test-NetConnection -ComputerName ${destIp} -Port ${port} -InformationLevel "Detailed"\n`;
+          scriptLine += `Write-Host "Test de connectivité ${protocol} depuis ${sourceIp} vers ${destIp}:${port}" -ForegroundColor Yellow\n`;
+          scriptLine += `$result = Test-NetConnection -ComputerName ${destIp} -Port ${port} -InformationLevel "Detailed"\n`;
           scriptLine += `if ($result.TcpTestSucceeded) {\n`;
-          scriptLine += `    Write-Host "Connexion réussie vers ${destIp}:${port} (${protocol})" -ForegroundColor Green\n`;
+          scriptLine += `    Write-Host "Connexion ${protocol} réussie depuis ${sourceIp} vers ${destIp}:${port}" -ForegroundColor Green\n`;
           scriptLine += `} else {\n`;
-          scriptLine += `    Write-Host "Échec de la connexion vers ${destIp}:${port} (${protocol})" -ForegroundColor Red\n`;
+          scriptLine += `    Write-Host "Échec de la connexion ${protocol} depuis ${sourceIp} vers ${destIp}:${port}" -ForegroundColor Red\n`;
           scriptLine += `}\n`;
         } else if (protocol.toLowerCase() === 'icmp') {
-          scriptLine = `$ping = Test-Connection -ComputerName ${destIp} -Count 1 -Quiet\n`;
+          scriptLine += `Write-Host "Test ICMP depuis ${sourceIp} vers ${destIp}" -ForegroundColor Yellow\n`;
+          scriptLine += `$ping = Test-Connection -ComputerName ${destIp} -Count 1 -Quiet\n`;
           scriptLine += `if ($ping) {\n`;
-          scriptLine += `    Write-Host "Ping réussi vers ${destIp}" -ForegroundColor Green\n`;
+          scriptLine += `    Write-Host "Ping réussi depuis ${sourceIp} vers ${destIp}" -ForegroundColor Green\n`;
           scriptLine += `} else {\n`;
-          scriptLine += `    Write-Host "Échec du ping vers ${destIp}" -ForegroundColor Red\n`;
+          scriptLine += `    Write-Host "Échec du ping depuis ${sourceIp} vers ${destIp}" -ForegroundColor Red\n`;
           scriptLine += `}\n`;
         }
         
@@ -270,7 +273,7 @@ function generatePowerShellScript() {
           scriptSheet.getRange(currentRow, 2).setValue(scriptLine);
           currentRow++;
           
-          scriptContent += `# Test de la règle ${index + 1}\n${scriptLine}\n`;
+          scriptContent += `# Test de la règle ligne ${index + 12}\n${scriptLine}\n`;
         }
       }
     }

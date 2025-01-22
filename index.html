@@ -333,7 +333,7 @@
             <button onclick="duplicateField('classification')" class="add-button">+</button>
           </div>
           <div class="rule-column">
-            <label class="column-label">Code (4 chars)</label>
+            <label class="column-label">APP code</label>
             <input type="text" class="input-field fourCharCode" placeholder="Code (4 chars)" value="${type === 'fourCharCode' ? '' : fourCharCode}" oninput="validateInput(this, 'fourChar')" maxlength="4">
             <button onclick="duplicateField('fourCharCode')" class="add-button">+</button>
           </div>
@@ -461,7 +461,7 @@
             return;
           }
           if (!fourCharCode) {
-            showNotification(`Code non saisi en ligne ${index + 1}`, true);
+            showNotification(`APP code non saisi en ligne ${index + 1}`, true);
             hasValidationError = true;
             return;
           }
@@ -724,7 +724,7 @@
                     <button onclick="duplicateField('classification')" class="add-button">+</button>
                   </div>
                   <div class="rule-column">
-                    <label class="column-label">Code (4 chars)</label>
+                    <label class="column-label">APP code</label>
                     <input type="text" class="input-field fourCharCode" placeholder="Code (4 chars)" value="${draft.fourCharCode === "N/A" ? "" : draft.fourCharCode}" oninput="validateInput(this, 'fourChar')" maxlength="4">
                     <button onclick="duplicateField('fourCharCode')" class="add-button">+</button>
                   </div>
@@ -823,7 +823,7 @@
           <button onclick="duplicateField('classification')" class="add-button">+</button>
         </div>
         <div class="rule-column">
-          <label class="column-label">Code (4 chars)</label>
+          <label class="column-label">APP code</label>
           <input type="text" id="fourCharCode" placeholder="Code (4 chars)" class="input-field" oninput="validateInput(this, 'fourChar')" maxlength="4">
           <button onclick="duplicateField('fourCharCode')" class="add-button">+</button>
         </div>
