@@ -34,6 +34,10 @@ function validatePort(port) {
   return portNum >= 1 && portNum <= 65000;
 }
 
+function validateFourCharField(value) {
+  return value.length === 4;
+}
+
 function checkDuplicates() {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
   const data = sheet.getRange(12, 4, 200, 12).getValues(); // D12:O211
@@ -95,8 +99,12 @@ function saveData(data) {
         sheet.getRange(nextRow, 4).setValue(row.sourceIp); // Colonne D
         sheet.getRange(nextRow, 7).setValue(row.destinationIp); // Colonne G
         sheet.getRange(nextRow, 8).setValue(row.protocol); // Colonne H
+        sheet.getRange(nextRow, 9).setValue(row.service); // Colonne I
         sheet.getRange(nextRow, 10).setValue(row.port); // Colonne J
-        sheet.getRange(nextRow, 11).setValue(row.columnK); // Colonne K
+        sheet.getRange(nextRow, 11).setValue(row.columnK); // Colonne K (Authentication)
+        sheet.getRange(nextRow, 12).setValue(row.columnL); // Colonne L (Flow encryption)
+        sheet.getRange(nextRow, 13).setValue(row.classification); // Colonne M
+        sheet.getRange(nextRow, 14).setValue(row.fourCharCode); // Colonne N
         nextRow++;
       }
     });
