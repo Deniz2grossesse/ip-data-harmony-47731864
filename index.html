@@ -611,78 +611,83 @@
     <div class="container">
       <div class="header">
         <h1 class="app-title">Gestionnaire de règles réseau</h1>
-        <div class="toolbar">
-          <button onclick="toggleDarkMode()" class="theme-toggle">Changer de thème</button>
-          <input type="text" placeholder="Rechercher..." onkeyup="filterRules(this.value)" class="search-input">
-          <button onclick="exportToCSV()" class="export-button">Exporter CSV</button>
-          <input type="file" accept=".csv" onchange="importFromCSV(this.files[0])" class="import-input">
+        
+        <!-- Ajout du champ de recherche -->
+        <div class="search-container" style="margin-bottom: 20px;">
+          <input 
+            type="text" 
+            class="input-field" 
+            placeholder="Rechercher dans les règles..." 
+            onkeyup="filterRules(this.value)"
+            style="width: 100%; max-width: 300px; margin: 0 auto; display: block;"
+          >
         </div>
-      </div>
 
-      <div class="rule-line">
-        <div class="rule-column">
-          <label class="column-label">Source IP</label>
-          <input type="text" id="sourceIp" placeholder="IP source" class="input-field" oninput="validateInput(this, 'ip')">
-          <button onclick="duplicateField('source')" class="add-button">+</button>
+        <div class="rule-line">
+          <div class="rule-column">
+            <label class="column-label">Source IP</label>
+            <input type="text" id="sourceIp" placeholder="IP source" class="input-field" oninput="validateInput(this, 'ip')">
+            <button onclick="duplicateField('source')" class="add-button">+</button>
+          </div>
+          <div class="rule-column">
+            <label class="column-label">IP Destination</label>
+            <input type="text" id="destinationIp" placeholder="IP destination" class="input-field" oninput="validateInput(this, 'ip')">
+            <button onclick="duplicateField('destination')" class="add-button">+</button>
+          </div>
+          <div class="rule-column">
+            <label class="column-label">Protocole</label>
+            <select id="protocol" class="input-field">
+              <option value="">Select</option>
+              <option value="tcp">TCP</option>
+              <option value="udp">UDP</option>
+              <option value="icmp">ICMP</option>
+            </select>
+            <button onclick="duplicateField('protocol')" class="add-button">+</button>
+          </div>
+          <div class="rule-column">
+            <label class="column-label">Service</label>
+            <input type="text" id="service" placeholder="Service" class="input-field">
+            <button onclick="duplicateField('service')" class="add-button">+</button>
+          </div>
+          <div class="rule-column">
+            <label class="column-label">Port</label>
+            <input type="text" id="port" placeholder="Port" class="input-field" oninput="validateInput(this, 'port')">
+            <button onclick="duplicateField('port')" class="add-button">+</button>
+          </div>
+          <div class="rule-column">
+            <label class="column-label">Authentication</label>
+            <select id="columnK" class="input-field">
+              <option value="">Select</option>
+              <option value="YES">YES</option>
+              <option value="NO">NO</option>
+            </select>
+            <button onclick="duplicateField('columnK')" class="add-button">+</button>
+          </div>
+          <div class="rule-column">
+            <label class="column-label">Flow encryption</label>
+            <select id="columnL" class="input-field">
+              <option value="">Select</option>
+              <option value="YES">YES</option>
+              <option value="NO">NO</option>
+            </select>
+            <button onclick="duplicateField('columnL')" class="add-button">+</button>
+          </div>
+          <div class="rule-column">
+            <label class="column-label">Classification</label>
+            <select id="classification" class="input-field">
+              <option value="">Select</option>
+              <option value="Amber">Amber</option>
+              <option value="More senssitive data">More senssitive data</option>
+            </select>
+            <button onclick="duplicateField('classification')" class="add-button">+</button>
+          </div>
+          <div class="rule-column">
+            <label class="column-label">Code (4 chars)</label>
+            <input type="text" id="fourCharCode" placeholder="Code (4 chars)" class="input-field" oninput="validateInput(this, 'fourChar')" maxlength="4">
+            <button onclick="duplicateField('fourCharCode')" class="add-button">+</button>
+          </div>
+          <button onclick="deleteLine(this)" class="delete-button">Supprimer</button>
         </div>
-        <div class="rule-column">
-          <label class="column-label">IP Destination</label>
-          <input type="text" id="destinationIp" placeholder="IP destination" class="input-field" oninput="validateInput(this, 'ip')">
-          <button onclick="duplicateField('destination')" class="add-button">+</button>
-        </div>
-        <div class="rule-column">
-          <label class="column-label">Protocole</label>
-          <select id="protocol" class="input-field">
-            <option value="">Select</option>
-            <option value="tcp">TCP</option>
-            <option value="udp">UDP</option>
-            <option value="icmp">ICMP</option>
-          </select>
-          <button onclick="duplicateField('protocol')" class="add-button">+</button>
-        </div>
-        <div class="rule-column">
-          <label class="column-label">Service</label>
-          <input type="text" id="service" placeholder="Service" class="input-field">
-          <button onclick="duplicateField('service')" class="add-button">+</button>
-        </div>
-        <div class="rule-column">
-          <label class="column-label">Port</label>
-          <input type="text" id="port" placeholder="Port" class="input-field" oninput="validateInput(this, 'port')">
-          <button onclick="duplicateField('port')" class="add-button">+</button>
-        </div>
-        <div class="rule-column">
-          <label class="column-label">Authentication</label>
-          <select id="columnK" class="input-field">
-            <option value="">Select</option>
-            <option value="YES">YES</option>
-            <option value="NO">NO</option>
-          </select>
-          <button onclick="duplicateField('columnK')" class="add-button">+</button>
-        </div>
-        <div class="rule-column">
-          <label class="column-label">Flow encryption</label>
-          <select id="columnL" class="input-field">
-            <option value="">Select</option>
-            <option value="YES">YES</option>
-            <option value="NO">NO</option>
-          </select>
-          <button onclick="duplicateField('columnL')" class="add-button">+</button>
-        </div>
-        <div class="rule-column">
-          <label class="column-label">Classification</label>
-          <select id="classification" class="input-field">
-            <option value="">Select</option>
-            <option value="Amber">Amber</option>
-            <option value="More senssitive data">More senssitive data</option>
-          </select>
-          <button onclick="duplicateField('classification')" class="add-button">+</button>
-        </div>
-        <div class="rule-column">
-          <label class="column-label">Code (4 chars)</label>
-          <input type="text" id="fourCharCode" placeholder="Code (4 chars)" class="input-field" oninput="validateInput(this, 'fourChar')" maxlength="4">
-          <button onclick="duplicateField('fourCharCode')" class="add-button">+</button>
-        </div>
-        <button onclick="deleteLine(this)" class="delete-button">Supprimer</button>
       </div>
       <div style="display: flex; gap: 16px; justify-content: center; margin-top: 20px;">
         <button onclick="verifyDuplicates()" class="save-button" style="background-color: #4f46e5;">Vérifier</button>
