@@ -21,27 +21,6 @@ function validateIpFormat(ip) {
     return validationCache.get(`ip_${ip}`);
   }
   
-  // Support for IP ranges (x.x.x.x-y.y.y.y)
-  if (ip.includes('-')) {
-    const [start, end] = ip.split('-');
-    const result = validateIpFormat(start.trim()) && validateIpFormat(end.trim());
-    validationCache.set(`ip_${ip}`, result);
-    return result;
-  }
-  
-  // Support for CIDR notation (x.x.x.x/yy)
-  if (ip.includes('/')) {
-    const [address, prefix] = ip.split('/');
-    const prefixNum = parseInt(prefix);
-    if (!validateIpFormat(address) || isNaN(prefixNum) || prefixNum < 0 || prefixNum > 32) {
-      validationCache.set(`ip_${ip}`, false);
-      return false;
-    }
-    validationCache.set(`ip_${ip}`, true);
-    return true;
-  }
-  
-  // Regular IP address validation
   const regex = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/;
   if (!regex.test(ip)) {
     validationCache.set(`ip_${ip}`, false);
