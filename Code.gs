@@ -269,42 +269,65 @@ function generateTopology() {
     topoSheet.clear();
   }
   
-  // En-têtes
-  topoSheet.getRange('A1').setValue('Source');
-  topoSheet.getRange('B1').setValue('Destination');
-  topoSheet.getRange('C1').setValue('Type');
+  // En-têtes pour les données de noeuds
+  topoSheet.getRange('A1').setValue('Node');
+  topoSheet.getRange('B1').setValue('Type');
   
-  let row = 2;
-  const connections = new Set();
+  // En-têtes pour les connexions
+  topoSheet.getRange('D1').setValue('Source');
+  topoSheet.getRange('E1').setValue('Target');
+  topoSheet.getRange('F1').setValue('Protocol');
+  
+  let nodeRow = 2;
+  let edgeRow = 2;
+  const nodes = new Set();
   
   // Ne traiter que les lignes de 12 jusqu'à lastFilledRow
   for (let i = 0; i <= lastFilledRow - 12; i++) {
     const line = data[i];
     if (line[0] && line[3] && !line[11]) { // Si IP source et destination existent et la ligne n'est pas ignorée
-      const connection = `${line[0]}-${line[3]}`;
-      if (!connections.has(connection)) {
-        connections.add(connection);
-        topoSheet.getRange(row, 1).setValue(line[0]); // IP Source
-        topoSheet.getRange(row, 2).setValue(line[3]); // IP Destination
-        topoSheet.getRange(row, 3).setValue(line[4] || 'N/A'); // Protocol
-        row++;
+      // Ajouter les noeuds s'ils n'existent pas déjà
+      if (!nodes.has(line[0])) {
+        topoSheet.getRange(nodeRow, 1).setValue(line[0]);
+        topoSheet.getRange(nodeRow, 2).setValue('Source');
+        nodes.add(line[0]);
+        nodeRow++;
       }
+      
+      if (!nodes.has(line[3])) {
+        topoSheet.getRange(nodeRow, 1).setValue(line[3]);
+        topoSheet.getRange(nodeRow, 2).setValue('Destination');
+        nodes.add(line[3]);
+        nodeRow++;
+      }
+      
+      // Ajouter la connexion
+      topoSheet.getRange(edgeRow, 4).setValue(line[0]); // Source
+      topoSheet.getRange(edgeRow, 5).setValue(line[3]); // Target
+      topoSheet.getRange(edgeRow, 6).setValue(line[4] || 'N/A'); // Protocol
+      edgeRow++;
     }
   }
   
   // Formater la feuille
-  topoSheet.autoResizeColumns(1, 3);
-  topoSheet.getRange(1, 1, 1, 3).setBackground('#f3f3f3').setFontWeight('bold');
+  topoSheet.autoResizeColumns(1, 6);
+  topoSheet.getRange('A1:F1').setBackground('#f3f3f3').setFontWeight('bold');
   
-  // Ajouter un graphique
+  // Créer un graphique de type scatter
   const chartBuilder = topoSheet.newChart();
   const chart = chartBuilder
-    .addRange(topoSheet.getRange(1, 1, row-1, 2))
+    .addRange(topoSheet.getRange(1, 1, nodeRow-1, 2)) // Données des noeuds
+    .addRange(topoSheet.getRange(1, 4, edgeRow-1, 3)) // Données des connexions
     .setChartType(Charts.ChartType.SCATTER)
     .setOption('title', 'Topologie Réseau')
     .setOption('width', 800)
     .setOption('height', 600)
-    .setPosition(5, 5, 0, 0)
+    .setOption('pointSize', 10)
+    .setOption('series', {
+      0: {type: 'scatter', pointShape: 'circle'},
+      1: {type: 'line', lineWidth: 1}
+    })
+    .setPosition(5, 8, 0, 0)
     .build();
   
   topoSheet.insertChart(chart);
