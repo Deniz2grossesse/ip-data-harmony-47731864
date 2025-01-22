@@ -40,7 +40,7 @@
 
       .rule-line {
         display: grid;
-        grid-template-columns: repeat(9, 1fr);
+        grid-template-columns: 1.3fr 1.3fr 0.8fr 1fr 1fr 0.8fr 0.8fr 0.8fr 1fr;
         gap: 8px;
         margin-bottom: 24px;
         align-items: start;
@@ -276,14 +276,17 @@
 
         newRuleLine.innerHTML = `
           <div class="rule-column">
+            <label class="column-label">Source IP</label>
             <input type="text" class="input-field sourceIp" placeholder="IP source" value="${type === 'source' ? '' : sourceIp}" oninput="validateInput(this, 'ip')">
             <button onclick="duplicateField('source')" class="add-button">+</button>
           </div>
           <div class="rule-column">
+            <label class="column-label">IP Destination</label>
             <input type="text" class="input-field destinationIp" placeholder="IP destination" value="${type === 'destination' ? '' : destinationIp}" oninput="validateInput(this, 'ip')">
             <button onclick="duplicateField('destination')" class="add-button">+</button>
           </div>
           <div class="rule-column">
+            <label class="column-label">Protocole</label>
             <select class="input-field protocol">
               <option value="">Select</option>
               <option value="tcp" ${protocol === 'tcp' ? 'selected' : ''}>TCP</option>
@@ -293,10 +296,12 @@
             <button onclick="duplicateField('protocol')" class="add-button">+</button>
           </div>
           <div class="rule-column">
+            <label class="column-label">Service</label>
             <input type="text" class="input-field service" placeholder="Service" value="${type === 'service' ? '' : service}">
             <button onclick="duplicateField('service')" class="add-button">+</button>
           </div>
           <div class="rule-column">
+            <label class="column-label">Port</label>
             <input type="text" class="input-field port" placeholder="Port" value="${type === 'port' ? '' : port}" oninput="validateInput(this, 'port')">
             <button onclick="duplicateField('port')" class="add-button">+</button>
           </div>
@@ -328,6 +333,7 @@
             <button onclick="duplicateField('classification')" class="add-button">+</button>
           </div>
           <div class="rule-column">
+            <label class="column-label">Code (4 chars)</label>
             <input type="text" class="input-field fourCharCode" placeholder="Code (4 chars)" value="${type === 'fourCharCode' ? '' : fourCharCode}" oninput="validateInput(this, 'fourChar')" maxlength="4">
             <button onclick="duplicateField('fourCharCode')" class="add-button">+</button>
           </div>
