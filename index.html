@@ -419,7 +419,9 @@
           const classification = line.querySelector('.classification, #classification').value;
           const fourCharCode = line.querySelector('.fourCharCode, #fourCharCode').value;
           
+          // Vérification des champs obligatoires
           if (sourceIp && destinationIp && protocol && port) {
+            // Validation des formats
             if (!validateIpFormat(sourceIp)) {
               showNotification('IP source invalide: ' + sourceIp, true);
               hasValidationError = true;
@@ -464,14 +466,16 @@
           return;
         }
         
+        // Vérification des doublons avant la sauvegarde
         google.script.run
           .withSuccessHandler(function(duplicateResponse) {
             if (duplicateResponse.success) {
+              // Si pas de doublons, on sauvegarde
               google.script.run
                 .withSuccessHandler(function(response) {
                   showNotification(response.message, !response.success);
                   if (response.success) {
-                    verifyDuplicates();
+                    verifyDuplicates(); // Rafraîchir la liste des doublons après la sauvegarde
                   }
                 })
                 .withFailureHandler(function(error) {
@@ -607,82 +611,78 @@
       });
     </script>
   </head>
-  <body onload="initTheme()">
+  <body>
     <div class="container">
-      <div class="header">
-        <h1 class="app-title">Gestionnaire de règles réseau</h1>
-
-        <div class="rule-line">
-          <div class="rule-column">
-            <label class="column-label">Source IP</label>
-            <input type="text" id="sourceIp" placeholder="IP source" class="input-field" oninput="validateInput(this, 'ip')">
-            <button onclick="duplicateField('source')" class="add-button">+</button>
-          </div>
-          <div class="rule-column">
-            <label class="column-label">IP Destination</label>
-            <input type="text" id="destinationIp" placeholder="IP destination" class="input-field" oninput="validateInput(this, 'ip')">
-            <button onclick="duplicateField('destination')" class="add-button">+</button>
-          </div>
-          <div class="rule-column">
-            <label class="column-label">Protocole</label>
-            <select id="protocol" class="input-field">
-              <option value="">Select</option>
-              <option value="tcp">TCP</option>
-              <option value="udp">UDP</option>
-              <option value="icmp">ICMP</option>
-            </select>
-            <button onclick="duplicateField('protocol')" class="add-button">+</button>
-          </div>
-          <div class="rule-column">
-            <label class="column-label">Service</label>
-            <input type="text" id="service" placeholder="Service" class="input-field">
-            <button onclick="duplicateField('service')" class="add-button">+</button>
-          </div>
-          <div class="rule-column">
-            <label class="column-label">Port</label>
-            <input type="text" id="port" placeholder="Port" class="input-field" oninput="validateInput(this, 'port')">
-            <button onclick="duplicateField('port')" class="add-button">+</button>
-          </div>
-          <div class="rule-column">
-            <label class="column-label">Authentication</label>
-            <select id="columnK" class="input-field">
-              <option value="">Select</option>
-              <option value="YES">YES</option>
-              <option value="NO">NO</option>
-            </select>
-            <button onclick="duplicateField('columnK')" class="add-button">+</button>
-          </div>
-          <div class="rule-column">
-            <label class="column-label">Flow encryption</label>
-            <select id="columnL" class="input-field">
-              <option value="">Select</option>
-              <option value="YES">YES</option>
-              <option value="NO">NO</option>
-            </select>
-            <button onclick="duplicateField('columnL')" class="add-button">+</button>
-          </div>
-          <div class="rule-column">
-            <label class="column-label">Classification</label>
-            <select id="classification" class="input-field">
-              <option value="">Select</option>
-              <option value="Amber">Amber</option>
-              <option value="More senssitive data">More senssitive data</option>
-            </select>
-            <button onclick="duplicateField('classification')" class="add-button">+</button>
-          </div>
-          <div class="rule-column">
-            <label class="column-label">Code (4 chars)</label>
-            <input type="text" id="fourCharCode" placeholder="Code (4 chars)" class="input-field" oninput="validateInput(this, 'fourChar')" maxlength="4">
-            <button onclick="duplicateField('fourCharCode')" class="add-button">+</button>
-          </div>
-          <button onclick="deleteLine(this)" class="delete-button">Supprimer</button>
+      <h1 class="app-title">Application</h1>
+      <div class="rule-line">
+        <div class="rule-column">
+          <label class="column-label">Source IP</label>
+          <input type="text" id="sourceIp" placeholder="IP source" class="input-field" oninput="validateInput(this, 'ip')">
+          <button onclick="duplicateField('source')" class="add-button">+</button>
         </div>
+        <div class="rule-column">
+          <label class="column-label">IP Destination</label>
+          <input type="text" id="destinationIp" placeholder="IP destination" class="input-field" oninput="validateInput(this, 'ip')">
+          <button onclick="duplicateField('destination')" class="add-button">+</button>
+        </div>
+        <div class="rule-column">
+          <label class="column-label">Protocole</label>
+          <select id="protocol" class="input-field">
+            <option value="">Select</option>
+            <option value="tcp">TCP</option>
+            <option value="udp">UDP</option>
+            <option value="icmp">ICMP</option>
+          </select>
+          <button onclick="duplicateField('protocol')" class="add-button">+</button>
+        </div>
+        <div class="rule-column">
+          <label class="column-label">Service</label>
+          <input type="text" id="service" placeholder="Service" class="input-field">
+          <button onclick="duplicateField('service')" class="add-button">+</button>
+        </div>
+        <div class="rule-column">
+          <label class="column-label">Port</label>
+          <input type="text" id="port" placeholder="Port" class="input-field" oninput="validateInput(this, 'port')">
+          <button onclick="duplicateField('port')" class="add-button">+</button>
+        </div>
+        <div class="rule-column">
+          <label class="column-label">Authentication</label>
+          <select id="columnK" class="input-field">
+            <option value="">Select</option>
+            <option value="YES">YES</option>
+            <option value="NO">NO</option>
+          </select>
+          <button onclick="duplicateField('columnK')" class="add-button">+</button>
+        </div>
+        <div class="rule-column">
+          <label class="column-label">Flow encryption</label>
+          <select id="columnL" class="input-field">
+            <option value="">Select</option>
+            <option value="YES">YES</option>
+            <option value="NO">NO</option>
+          </select>
+          <button onclick="duplicateField('columnL')" class="add-button">+</button>
+        </div>
+        <div class="rule-column">
+          <label class="column-label">Classification</label>
+          <select id="classification" class="input-field">
+            <option value="">Select</option>
+            <option value="Amber">Amber</option>
+            <option value="More senssitive data">More senssitive data</option>
+          </select>
+          <button onclick="duplicateField('classification')" class="add-button">+</button>
+        </div>
+        <div class="rule-column">
+          <label class="column-label">Code (4 chars)</label>
+          <input type="text" id="fourCharCode" placeholder="Code (4 chars)" class="input-field" oninput="validateInput(this, 'fourChar')" maxlength="4">
+          <button onclick="duplicateField('fourCharCode')" class="add-button">+</button>
+        </div>
+        <button onclick="deleteLine(this)" class="delete-button">Supprimer</button>
       </div>
       <div style="display: flex; gap: 16px; justify-content: center; margin-top: 20px;">
         <button onclick="verifyDuplicates()" class="save-button" style="background-color: #4f46e5;">Vérifier</button>
         <button onclick="saveRules()" class="save-button">Valider</button>
         <button onclick="generateScript()" class="save-button" style="background-color: #059669;">Générer Script</button>
-        <button onclick="google.script.run.showTopologyView()" class="save-button" style="background-color: #7c3aed;">Vue Topologique</button>
       </div>
 
       <div id="duplicatesContainer" class="duplicates-container">
@@ -704,66 +704,5 @@
     </div>
     
     <div id="notification" class="notification hidden"></div>
-    <script>
-      // Thème sombre/clair
-      function toggleDarkMode() {
-        document.body.classList.toggle('dark-mode');
-        const isDarkMode = document.body.classList.contains('dark-mode');
-        localStorage.setItem('darkMode', isDarkMode);
-      }
-
-      // Initialisation du thème
-      function initTheme() {
-        const isDarkMode = localStorage.getItem('darkMode') === 'true';
-        if (isDarkMode) {
-          document.body.classList.add('dark-mode');
-        }
-      }
-
-      // Export CSV
-      function exportToCSV() {
-        const rules = [];
-        const ruleLines = document.querySelectorAll('.rule-line');
-        ruleLines.forEach(line => {
-          const sourceIp = line.querySelector('.sourceIp').value;
-          const destinationIp = line.querySelector('.destinationIp').value;
-          const protocol = line.querySelector('.protocol').value;
-          const port = line.querySelector('.port').value;
-          if (sourceIp && destinationIp) {
-            rules.push([sourceIp, destinationIp, protocol, port].join(','));
-          }
-        });
-        
-        const csvContent = "data:text/csv;charset=utf-8," + rules.join('\n');
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "network_rules.csv");
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      }
-
-      // Import CSV
-      function importFromCSV(file) {
-        const reader = new FileReader();
-        reader.onload = function(event) {
-          const csvData = event.target.result;
-          const lines = csvData.split('\n');
-          lines.forEach(line => {
-            const [sourceIp, destinationIp, protocol, port] = line.split(',');
-            if (sourceIp && destinationIp) {
-              duplicateField('source');
-              const lastLine = document.querySelector('.rule-line:last-child');
-              lastLine.querySelector('.sourceIp').value = sourceIp;
-              lastLine.querySelector('.destinationIp').value = destinationIp;
-              lastLine.querySelector('.protocol').value = protocol;
-              lastLine.querySelector('.port').value = port;
-            }
-          });
-        };
-        reader.readAsText(file);
-      }
-    </script>
   </body>
 </html>
