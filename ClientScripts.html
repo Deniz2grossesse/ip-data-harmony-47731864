@@ -3,7 +3,6 @@
   function toggleDarkMode() {
     document.body.classList.toggle('dark-mode');
     const isDarkMode = document.body.classList.contains('dark-mode');
-    localStorage.setItem('darkMode', isDarkMode);
     
     // Mise à jour des styles pour le mode sombre
     if (isDarkMode) {
@@ -15,14 +14,11 @@
     }
   }
 
-  // Initialisation du thème
+  // Initialisation du thème en mode clair par défaut
   function initTheme() {
-    const isDarkMode = localStorage.getItem('darkMode') === 'true';
-    if (isDarkMode) {
-      document.body.classList.add('dark-mode');
-      document.querySelector('.container').style.backgroundColor = 'rgba(30, 41, 59, 0.9)';
-      document.querySelector('.container').style.color = '#ffffff';
-    }
+    document.body.classList.remove('dark-mode');
+    document.querySelector('.container').style.backgroundColor = 'rgba(255, 255, 255, 0.9)';
+    document.querySelector('.container').style.color = '#000000';
   }
 
   // Recherche et filtrage
@@ -99,5 +95,4 @@
       function validateFourCharField(value) {
         return value.length === 4;
       }
-
 </script>
