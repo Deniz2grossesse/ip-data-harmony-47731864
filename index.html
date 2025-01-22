@@ -596,6 +596,17 @@
           .downloadPowerShellScript();
       }
 
+      function generateTopology() {
+        google.script.run
+          .withSuccessHandler(function(response) {
+            showNotification(response.message, !response.success);
+          })
+          .withFailureHandler(function(error) {
+            showNotification('Erreur lors de la génération de la topologie: ' + error, true);
+          })
+          .generateTopology();
+      }
+
       document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('sourceIp').addEventListener('input', function() {
           validateInput(this, 'ip');
@@ -683,6 +694,7 @@
         <button onclick="verifyDuplicates()" class="save-button" style="background-color: #4f46e5;">Vérifier</button>
         <button onclick="saveRules()" class="save-button">Valider</button>
         <button onclick="generateScript()" class="save-button" style="background-color: #059669;">Générer Script</button>
+        <button onclick="generateTopology()" class="save-button" style="background-color: #7c3aed;">Générer Topologie</button>
       </div>
 
       <div id="duplicatesContainer" class="duplicates-container">

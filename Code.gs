@@ -247,3 +247,60 @@ function downloadPowerShellScript() {
   const blob = Utilities.newBlob(scriptContent, 'text/plain', 'test_connectivity.ps1');
   return blob;
 }
+
+function generateTopology() {
+  const data = getSheetData();
+  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  let topoSheet = spreadsheet.getSheetByName('Topologie');
+  
+  // Créer la feuille si elle n'existe pas
+  if (!topoSheet) {
+    topoSheet = spreadsheet.insertSheet('Topologie');
+  } else {
+    // Effacer le contenu existant
+    topoSheet.clear();
+  }
+  
+  // En-têtes
+  topoSheet.getRange('A1').setValue('Source');
+  topoSheet.getRange('B1').setValue('Destination');
+  topoSheet.getRange('C1').setValue('Type');
+  
+  let row = 2;
+  const connections = new Set();
+  
+  data.forEach((line) => {
+    if (line[0] && line[3] && !line[11]) { // Si IP source et destination existent et la ligne n'est pas ignorée
+      const connection = `${line[0]}-${line[3]}`;
+      if (!connections.has(connection)) {
+        connections.add(connection);
+        topoSheet.getRange(row, 1).setValue(line[0]); // IP Source
+        topoSheet.getRange(row, 2).setValue(line[3]); // IP Destination
+        topoSheet.getRange(row, 3).setValue(line[4] || 'N/A'); // Protocol
+        row++;
+      }
+    }
+  });
+  
+  // Formater la feuille
+  topoSheet.autoResizeColumns(1, 3);
+  topoSheet.getRange(1, 1, 1, 3).setBackground('#f3f3f3').setFontWeight('bold');
+  
+  // Ajouter un graphique
+  const chartBuilder = topoSheet.newChart();
+  const chart = chartBuilder
+    .addRange(topoSheet.getRange(1, 1, row-1, 2))
+    .setChartType(Charts.ChartType.SCATTER)
+    .setOption('title', 'Topologie Réseau')
+    .setOption('width', 800)
+    .setOption('height', 600)
+    .setPosition(5, 5, 0, 0)
+    .build();
+  
+  topoSheet.insertChart(chart);
+  
+  return {
+    success: true,
+    message: "Topologie générée avec succès dans l'onglet 'Topologie'"
+  };
+}
