@@ -32,6 +32,9 @@ function getNetworkRules() {
   const data = sheet.getRange(12, 4, 200, 12).getValues(); // Commence à la ligne 12, colonne D
   const rules = [];
   
+  // Message de scan
+  SpreadsheetApp.getUi().alert('Scan en cours depuis la ligne 12...');
+  
   for (let i = 0; i < data.length; i++) {
     const row = data[i];
     if (row[0] && row[3]) { // Vérifie si source IP (colonne D) et destination IP (colonne G) existent
@@ -44,6 +47,9 @@ function getNetworkRules() {
       });
     }
   }
+  
+  // Message de fin de scan
+  SpreadsheetApp.getUi().alert('Scan effectué, la topologie va s\'afficher');
   
   return rules;
 }
