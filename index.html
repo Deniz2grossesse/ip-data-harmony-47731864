@@ -32,7 +32,7 @@
 
       .rule-line {
         display: grid;
-        grid-template-columns: repeat(6, 1fr) auto;
+        grid-template-columns: repeat(4, 1fr) auto;
         gap: 16px;
         margin-bottom: 24px;
         align-items: start;
@@ -241,27 +241,15 @@
         const ruleLines = document.getElementsByClassName('rule-line');
         const lastRuleLine = ruleLines[ruleLines.length - 1];
         
-        const sourceName = lastRuleLine.querySelector('.sourceName, #sourceName').value;
         const sourceIp = lastRuleLine.querySelector('.sourceIp, #sourceIp').value;
-        const destinationName = lastRuleLine.querySelector('.destinationName, #destinationName').value;
         const destinationIp = lastRuleLine.querySelector('.destinationIp, #destinationIp').value;
         const protocol = lastRuleLine.querySelector('.protocol, #protocol').value;
         const port = lastRuleLine.querySelector('.port, #port').value;
-        const columnK = lastRuleLine.querySelector('.columnK, #columnK').value;
-        const columnL = lastRuleLine.querySelector('.columnL, #columnL').value;
 
         newRuleLine.innerHTML = `
           <div class="rule-column">
-            <input type="text" class="input-field sourceName" placeholder="Source name" value="${type === 'sourceName' ? '' : sourceName}">
-            <button onclick="duplicateField('sourceName')" class="add-button">+</button>
-          </div>
-          <div class="rule-column">
             <input type="text" class="input-field sourceIp" placeholder="IP source" value="${type === 'source' ? '' : sourceIp}" oninput="validateInput(this, 'ip')">
             <button onclick="duplicateField('source')" class="add-button">+</button>
-          </div>
-          <div class="rule-column">
-            <input type="text" class="input-field destinationName" placeholder="Destination name" value="${type === 'destinationName' ? '' : destinationName}">
-            <button onclick="duplicateField('destinationName')" class="add-button">+</button>
           </div>
           <div class="rule-column">
             <input type="text" class="input-field destinationIp" placeholder="IP destination" value="${type === 'destination' ? '' : destinationIp}" oninput="validateInput(this, 'ip')">
@@ -281,20 +269,7 @@
             <button onclick="duplicateField('port')" class="add-button">+</button>
           </div>
           <div class="rule-column">
-            <select class="input-field columnK">
-              <option value="">Select</option>
-              <option value="YES" ${columnK === 'YES' ? 'selected' : ''}>YES</option>
-              <option value="NO" ${columnK === 'NO' ? 'selected' : ''}>NO</option>
-            </select>
-            <button onclick="duplicateField('columnK')" class="add-button">+</button>
-          </div>
-          <div class="rule-column">
-            <select class="input-field columnL">
-              <option value="">Select</option>
-              <option value="YES" ${columnL === 'YES' ? 'selected' : ''}>YES</option>
-              <option value="NO" ${columnL === 'NO' ? 'selected' : ''}>NO</option>
-            </select>
-            <button onclick="duplicateField('columnL')" class="add-button">+</button>
+            <input type="text" class="input-field comment" placeholder="Commentaire" readonly>
           </div>
           <button onclick="deleteLine(this)" class="delete-button">Supprimer</button>
         `;
@@ -302,22 +277,14 @@
         const saveButton = document.querySelector('.save-button');
         container.insertBefore(newRuleLine, saveButton.parentElement);
 
-        if (type === 'sourceName') {
-          newRuleLine.querySelector('.sourceName').focus();
-        } else if (type === 'source') {
+        if (type === 'source') {
           newRuleLine.querySelector('.sourceIp').focus();
-        } else if (type === 'destinationName') {
-          newRuleLine.querySelector('.destinationName').focus();
         } else if (type === 'destination') {
           newRuleLine.querySelector('.destinationIp').focus();
         } else if (type === 'protocol') {
           newRuleLine.querySelector('.protocol').focus();
         } else if (type === 'port') {
           newRuleLine.querySelector('.port').focus();
-        } else if (type === 'columnK') {
-          newRuleLine.querySelector('.columnK').focus();
-        } else if (type === 'columnL') {
-          newRuleLine.querySelector('.columnL').focus();
         }
       }
 
@@ -368,14 +335,10 @@
         const ruleLines = document.querySelectorAll('.rule-line');
         
         ruleLines.forEach(line => {
-          const sourceName = line.querySelector('.sourceName, #sourceName').value;
           const sourceIp = line.querySelector('.sourceIp, #sourceIp').value;
-          const destinationName = line.querySelector('.destinationName, #destinationName').value;
           const destinationIp = line.querySelector('.destinationIp, #destinationIp').value;
           const protocol = line.querySelector('.protocol, #protocol').value;
           const port = line.querySelector('.port, #port').value;
-          const columnK = line.querySelector('.columnK, #columnK').value;
-          const columnL = line.querySelector('.columnL, #columnL').value;
           
           if (sourceIp && destinationIp && protocol && port) {
             if (!validateIpFormat(sourceIp) || !validateIpFormat(destinationIp) || !validatePort(port)) {
@@ -383,14 +346,10 @@
               return;
             }
             rules.push({
-              sourceName: sourceName,
               sourceIp: sourceIp,
-              destinationName: destinationName,
               destinationIp: destinationIp,
               protocol: protocol,
-              port: port,
-              columnK: columnK,
-              columnL: columnL
+              port: port
             });
           }
         });
@@ -521,16 +480,8 @@
     <div class="container">
       <div class="rule-line">
         <div class="rule-column">
-          <input type="text" id="sourceName" placeholder="Source name" class="input-field">
-          <button onclick="duplicateField('sourceName')" class="add-button">+</button>
-        </div>
-        <div class="rule-column">
           <input type="text" id="sourceIp" placeholder="IP source" class="input-field" oninput="validateInput(this, 'ip')">
           <button onclick="duplicateField('source')" class="add-button">+</button>
-        </div>
-        <div class="rule-column">
-          <input type="text" id="destinationName" placeholder="Destination name" class="input-field">
-          <button onclick="duplicateField('destinationName')" class="add-button">+</button>
         </div>
         <div class="rule-column">
           <input type="text" id="destinationIp" placeholder="IP destination" class="input-field" oninput="validateInput(this, 'ip')">
@@ -550,20 +501,7 @@
           <button onclick="duplicateField('port')" class="add-button">+</button>
         </div>
         <div class="rule-column">
-          <select id="columnK" class="input-field">
-            <option value="">Select</option>
-            <option value="YES">YES</option>
-            <option value="NO">NO</option>
-          </select>
-          <button onclick="duplicateField('columnK')" class="add-button">+</button>
-        </div>
-        <div class="rule-column">
-          <select id="columnL" class="input-field">
-            <option value="">Select</option>
-            <option value="YES">YES</option>
-            <option value="NO">NO</option>
-          </select>
-          <button onclick="duplicateField('columnL')" class="add-button">+</button>
+          <input type="text" class="input-field comment" placeholder="Commentaire" readonly>
         </div>
         <button onclick="deleteLine(this)" class="delete-button">Supprimer</button>
       </div>
