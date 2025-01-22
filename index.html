@@ -408,7 +408,7 @@
         const ruleLines = document.querySelectorAll('.rule-line');
         let hasValidationError = false;
         
-        ruleLines.forEach(line => {
+        ruleLines.forEach((line, index) => {
           const sourceIp = line.querySelector('.sourceIp, #sourceIp').value;
           const destinationIp = line.querySelector('.destinationIp, #destinationIp').value;
           const protocol = line.querySelector('.protocol, #protocol').value;
@@ -420,41 +420,85 @@
           const fourCharCode = line.querySelector('.fourCharCode, #fourCharCode').value;
           
           // Vérification des champs obligatoires
-          if (sourceIp && destinationIp && protocol && port) {
-            // Validation des formats
-            if (!validateIpFormat(sourceIp)) {
-              showNotification('IP source invalide: ' + sourceIp, true);
-              hasValidationError = true;
-              return;
-            }
-            if (!validateIpFormat(destinationIp)) {
-              showNotification('IP destination invalide: ' + destinationIp, true);
-              hasValidationError = true;
-              return;
-            }
-            if (!validatePort(port)) {
-              showNotification('Port invalide: ' + port, true);
-              hasValidationError = true;
-              return;
-            }
-            if (fourCharCode && !validateFourCharField(fourCharCode)) {
-              showNotification('Le code doit contenir exactement 4 caractères', true);
-              hasValidationError = true;
-              return;
-            }
-
-            rules.push({
-              sourceIp,
-              destinationIp,
-              protocol,
-              service,
-              port,
-              columnK,
-              columnL,
-              classification,
-              fourCharCode
-            });
+          if (!sourceIp) {
+            showNotification(`Valeur non saisie pour IP source en ligne ${index + 1}`, true);
+            hasValidationError = true;
+            return;
           }
+          if (!destinationIp) {
+            showNotification(`Valeur non saisie pour IP destination en ligne ${index + 1}`, true);
+            hasValidationError = true;
+            return;
+          }
+          if (!protocol) {
+            showNotification(`Protocole non saisi en ligne ${index + 1}`, true);
+            hasValidationError = true;
+            return;
+          }
+          if (!service) {
+            showNotification(`Service non saisi en ligne ${index + 1}`, true);
+            hasValidationError = true;
+            return;
+          }
+          if (!port) {
+            showNotification(`Port non saisi en ligne ${index + 1}`, true);
+            hasValidationError = true;
+            return;
+          }
+          if (!columnK) {
+            showNotification(`Authentication non saisie en ligne ${index + 1}`, true);
+            hasValidationError = true;
+            return;
+          }
+          if (!columnL) {
+            showNotification(`Flow encryption non saisi en ligne ${index + 1}`, true);
+            hasValidationError = true;
+            return;
+          }
+          if (!classification) {
+            showNotification(`Classification non saisie en ligne ${index + 1}`, true);
+            hasValidationError = true;
+            return;
+          }
+          if (!fourCharCode) {
+            showNotification(`Code non saisi en ligne ${index + 1}`, true);
+            hasValidationError = true;
+            return;
+          }
+
+          // Validation des formats
+          if (!validateIpFormat(sourceIp)) {
+            showNotification(`IP source invalide en ligne ${index + 1}: ${sourceIp}`, true);
+            hasValidationError = true;
+            return;
+          }
+          if (!validateIpFormat(destinationIp)) {
+            showNotification(`IP destination invalide en ligne ${index + 1}: ${destinationIp}`, true);
+            hasValidationError = true;
+            return;
+          }
+          if (!validatePort(port)) {
+            showNotification(`Port invalide en ligne ${index + 1}: ${port}`, true);
+            hasValidationError = true;
+            return;
+          }
+          if (!validateFourCharField(fourCharCode)) {
+            showNotification(`Le code doit contenir exactement 4 caractères en ligne ${index + 1}`, true);
+            hasValidationError = true;
+            return;
+          }
+
+          rules.push({
+            sourceIp,
+            destinationIp,
+            protocol,
+            service,
+            port,
+            columnK,
+            columnL,
+            classification,
+            fourCharCode
+          });
         });
         
         if (hasValidationError) {
