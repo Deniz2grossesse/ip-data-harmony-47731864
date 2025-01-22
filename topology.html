@@ -7,63 +7,89 @@
       google.charts.load('current', {'packages':['sankey']});
       
       function drawTopology(data) {
+        if (!data || data.length === 0) {
+          document.getElementById('error-message').textContent = 'Aucune donnée à afficher';
+          document.getElementById('error-message').style.display = 'block';
+          return;
+        }
+
         const container = document.getElementById('topology');
         const chart = new google.visualization.Sankey(container);
         
-        // Préparation des données
-        const dataTable = new google.visualization.DataTable();
-        dataTable.addColumn('string', 'From');
-        dataTable.addColumn('string', 'To');
-        dataTable.addColumn('number', 'Weight');
-        dataTable.addColumn({type: 'string', role: 'style'});
-        
-        // Création d'un map pour stocker les couleurs uniques des destinations
-        const destinationColors = new Map();
-        let colorIndex = 0;
-        const colors = ['#FF4081', '#7C4DFF', '#00BCD4', '#FFC107', '#8BC34A'];
-        
-        // Traitement des données
-        data.forEach(rule => {
-          if (!destinationColors.has(rule.destinationIp)) {
-            destinationColors.set(rule.destinationIp, colors[colorIndex % colors.length]);
-            colorIndex++;
-          }
+        try {
+          // Préparation des données
+          const dataTable = new google.visualization.DataTable();
+          dataTable.addColumn('string', 'From');
+          dataTable.addColumn('string', 'To');
+          dataTable.addColumn('number', 'Weight');
           
-          const color = destinationColors.get(rule.destinationIp);
-          dataTable.addRow([
-            rule.sourceIp,
-            rule.destinationIp,
-            1,
-            'color: ' + color
-          ]);
-        });
-
-        // Options du graphique
-        const options = {
-          width: 900,
-          height: 600,
-          sankey: {
-            node: {
-              colors: ['#000000'],
-              label: {
-                fontSize: 14,
-                color: '#000000'
-              }
-            },
-            link: {
-              colorMode: 'gradient',
-              fillOpacity: 0.8
+          // Map pour stocker les connexions uniques
+          const uniqueConnections = new Map();
+          
+          // Traitement des données pour éviter les cycles
+          data.forEach(rule => {
+            const key = `${rule.sourceIp}-${rule.destinationIp}`;
+            if (!uniqueConnections.has(key)) {
+              uniqueConnections.set(key, {
+                from: rule.sourceIp,
+                to: rule.destinationIp,
+                weight: 1
+              });
+            } else {
+              // Incrémenter le poids si la connexion existe déjà
+              const connection = uniqueConnections.get(key);
+              connection.weight += 1;
             }
-          }
-        };
+          });
+          
+          // Conversion des connexions uniques en tableau de données
+          const rows = Array.from(uniqueConnections.values()).map(conn => [
+            conn.from,
+            conn.to,
+            conn.weight
+          ]);
+          
+          dataTable.addRows(rows);
 
-        chart.draw(dataTable, options);
+          // Options du graphique
+          const options = {
+            width: 900,
+            height: 600,
+            sankey: {
+              node: {
+                colors: ['#a6cee3', '#1f78b4', '#b2df8a'],
+                label: {
+                  fontSize: 14,
+                  color: '#000000',
+                  bold: true
+                },
+                nodePadding: 80
+              },
+              link: {
+                colorMode: 'gradient',
+                fillOpacity: 0.8
+              }
+            }
+          };
+
+          chart.draw(dataTable, options);
+          document.getElementById('error-message').style.display = 'none';
+        } catch (error) {
+          console.error('Erreur lors de la création du graphique:', error);
+          document.getElementById('error-message').textContent = 'Erreur lors de la création du graphique';
+          document.getElementById('error-message').style.display = 'block';
+        }
       }
 
       // Fonction pour récupérer et afficher les données
       function loadTopologyData() {
         google.script.run
           .withSuccessHandler(drawTopology)
+          .withFailureHandler(function(error) {
+            console.error('Erreur lors du chargement des données:', error);
+            document.getElementById('error-message').textContent = 'Erreur lors du chargement des données';
+            document.getElementById('error-message').style.display = 'block';
+          })
           .getNetworkRules();
       }
 
@@ -93,10 +119,19 @@
       .close-button:hover {
         background-color: #dc2626;
       }
+      #error-message {
+        display: none;
+        color: #ef4444;
+        text-align: center;
+        padding: 20px;
+        font-size: 16px;
+        font-weight: bold;
+      }
     </style>
   </head>
   <body onload="loadTopologyData()">
     <button onclick="closeTopology()" class="close-button">Fermer</button>
+    <div id="error-message"></div>
     <div id="topology"></div>
   </body>
 </html>
