@@ -53,3 +53,46 @@ function getNetworkRules() {
   
   return rules;
 }
+
+function downloadPowerShellScript() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  const ui = SpreadsheetApp.getUi();
+  
+  // Afficher le message
+  ui.alert('Auto NES génère les scripts de tests');
+  
+  // Récupérer les règles
+  const rules = getNetworkRules();
+  
+  // Effacer les anciennes données dans les colonnes A et B
+  sheet.getRange("A:B").clearContent();
+  
+  // Écrire les en-têtes
+  sheet.getRange("A1").setValue("Source IP");
+  sheet.getRange("B1").setValue("Script PowerShell");
+  
+  let row = 2; // Commencer à la ligne 2 après les en-têtes
+  
+  rules.forEach(rule => {
+    // Écrire l'IP source
+    sheet.getRange(row, 1).setValue(rule.sourceIp);
+    
+    // Générer le script PowerShell en fonction du protocole
+    let script = '';
+    if (rule.protocol.toLowerCase() === 'tcp') {
+      script = `Test-NetConnection -ComputerName ${rule.destinationIp} -Port ${rule.port} -InformationLevel "Detailed"`;
+    } else if (rule.protocol.toLowerCase() === 'icmp') {
+      script = `Test-Connection -TargetName ${rule.destinationIp} -Count 4 -Protocol ICMP`;
+    } else if (rule.protocol.toLowerCase() === 'udp') {
+      script = `Test-NetConnection -ComputerName ${rule.destinationIp} -Port ${rule.port} -InformationLevel "Detailed"`;
+    }
+    
+    // Écrire le script PowerShell
+    sheet.getRange(row, 2).setValue(script);
+    
+    row++;
+  });
+  
+  // Message de confirmation
+  ui.alert('Scripts générés avec succès !');
+}
