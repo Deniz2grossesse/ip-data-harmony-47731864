@@ -238,11 +238,9 @@
         const newRuleLine = document.createElement('div');
         newRuleLine.className = 'rule-line';
         
-        // Récupérer la dernière ligne de règle
         const ruleLines = document.getElementsByClassName('rule-line');
         const lastRuleLine = ruleLines[ruleLines.length - 1];
         
-        // Récupérer les valeurs de la dernière ligne
         const sourceIp = lastRuleLine.querySelector('.sourceIp, #sourceIp').value;
         const destinationIp = lastRuleLine.querySelector('.destinationIp, #destinationIp').value;
         const protocol = lastRuleLine.querySelector('.protocol, #protocol').value;
@@ -259,10 +257,9 @@
           </div>
           <div class="rule-column">
             <select class="input-field protocol">
-              <option value="ssh" ${protocol === 'ssh' ? 'selected' : ''}>SSH</option>
-              <option value="https" ${protocol === 'https' ? 'selected' : ''}>HTTPS</option>
-              <option value="ping" ${protocol === 'ping' ? 'selected' : ''}>PING</option>
-              <option value="smtp" ${protocol === 'smtp' ? 'selected' : ''}>SMTP</option>
+              <option value="tcp" ${protocol === 'tcp' ? 'selected' : ''}>TCP</option>
+              <option value="udp" ${protocol === 'udp' ? 'selected' : ''}>UDP</option>
+              <option value="icmp" ${protocol === 'icmp' ? 'selected' : ''}>ICMP</option>
             </select>
             <button onclick="duplicateField('protocol')" class="add-button">+</button>
           </div>
@@ -276,11 +273,9 @@
           <button onclick="deleteLine(this)" class="delete-button">Supprimer</button>
         `;
 
-        // Insérer la nouvelle ligne avant le bouton de sauvegarde
         const saveButton = document.querySelector('.save-button');
         container.insertBefore(newRuleLine, saveButton.parentElement);
 
-        // Focus sur le champ approprié
         if (type === 'source') {
           newRuleLine.querySelector('.sourceIp').focus();
         } else if (type === 'destination') {
@@ -452,7 +447,6 @@
                     document.getElementById('duplicatesContainer').classList.remove('visible');
                   }
                   showNotification(response.message);
-                  // Automatically verify duplicates after successful deletion
                   verifyDuplicates();
                 } else {
                   showNotification(response.message, true);
