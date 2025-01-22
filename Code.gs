@@ -182,8 +182,9 @@ function getDraftData() {
   try {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
     const data = sheet.getRange(12, 4, 200, 12).getValues();
+    const drafts = [];
     
-    // Parcourir les lignes jusqu'à trouver une ligne incomplète
+    // Parcourir les lignes pour trouver toutes les lignes incomplètes
     for (let i = 0; i < data.length; i++) {
       const row = data[i];
       const [sourceIp, , , destIp, protocol, service, port, columnK, columnL, classification, fourCharCode] = row;
@@ -191,28 +192,29 @@ function getDraftData() {
       // Si au moins un champ est rempli mais pas tous
       if (sourceIp || destIp || protocol || service || port || columnK || columnL || classification || fourCharCode) {
         if (!sourceIp || !destIp || !protocol || !service || !port || !columnK || !columnL || !classification || !fourCharCode) {
-          return {
-            success: true,
-            data: {
-              lineNumber: i + 12,
-              sourceIp: sourceIp || "N/A",
-              destinationIp: destIp || "N/A",
-              protocol: protocol || "N/A",
-              service: service || "N/A",
-              port: port || "N/A",
-              columnK: columnK || "N/A",
-              columnL: columnL || "N/A",
-              classification: classification || "N/A",
-              fourCharCode: fourCharCode || "N/A"
-            }
-          };
+          drafts.push({
+            lineNumber: i + 12,
+            sourceIp: sourceIp || "N/A",
+            destinationIp: destIp || "N/A",
+            protocol: protocol || "N/A",
+            service: service || "N/A",
+            port: port || "N/A",
+            columnK: columnK || "N/A",
+            columnL: columnL || "N/A",
+            classification: classification || "N/A",
+            fourCharCode: fourCharCode || "N/A"
+          });
         }
       }
     }
     
-    return { success: false, message: "Aucun brouillon trouvé" };
+    return { 
+      success: drafts.length > 0, 
+      message: drafts.length > 0 ? `${drafts.length} brouillon(s) trouvé(s)` : "Aucun brouillon trouvé",
+      drafts: drafts 
+    };
   } catch (error) {
-    return { success: false, message: "Erreur lors de la récupération du brouillon: " + error.toString() };
+    return { success: false, message: "Erreur lors de la récupération des brouillons: " + error.toString() };
   }
 }
 
@@ -285,4 +287,3 @@ function downloadPowerShellScript() {
   const blob = Utilities.newBlob(scriptContent, 'text/plain', 'test_connectivity.ps1');
   return blob;
 }
-

@@ -600,26 +600,104 @@
         google.script.run
           .withSuccessHandler(function(response) {
             if (response.success) {
-              const data = response.data;
+              const drafts = response.drafts;
               
-              // Remplir le premier formulaire avec les données
-              document.getElementById('sourceIp').value = data.sourceIp === "N/A" ? "" : data.sourceIp;
-              document.getElementById('destinationIp').value = data.destinationIp === "N/A" ? "" : data.destinationIp;
-              document.getElementById('protocol').value = data.protocol === "N/A" ? "" : data.protocol.toLowerCase();
-              document.getElementById('service').value = data.service === "N/A" ? "" : data.service;
-              document.getElementById('port').value = data.port === "N/A" ? "" : data.port;
-              document.getElementById('columnK').value = data.columnK === "N/A" ? "" : data.columnK;
-              document.getElementById('columnL').value = data.columnL === "N/A" ? "" : data.columnL;
-              document.getElementById('classification').value = data.classification === "N/A" ? "" : data.classification;
-              document.getElementById('fourCharCode').value = data.fourCharCode === "N/A" ? "" : data.fourCharCode;
+              // Remplir le premier formulaire avec le premier brouillon
+              const firstDraft = drafts[0];
+              document.getElementById('sourceIp').value = firstDraft.sourceIp === "N/A" ? "" : firstDraft.sourceIp;
+              document.getElementById('destinationIp').value = firstDraft.destinationIp === "N/A" ? "" : firstDraft.destinationIp;
+              document.getElementById('protocol').value = firstDraft.protocol === "N/A" ? "" : firstDraft.protocol.toLowerCase();
+              document.getElementById('service').value = firstDraft.service === "N/A" ? "" : firstDraft.service;
+              document.getElementById('port').value = firstDraft.port === "N/A" ? "" : firstDraft.port;
+              document.getElementById('columnK').value = firstDraft.columnK === "N/A" ? "" : firstDraft.columnK;
+              document.getElementById('columnL').value = firstDraft.columnL === "N/A" ? "" : firstDraft.columnL;
+              document.getElementById('classification').value = firstDraft.classification === "N/A" ? "" : firstDraft.classification;
+              document.getElementById('fourCharCode').value = firstDraft.fourCharCode === "N/A" ? "" : firstDraft.fourCharCode;
               
-              showNotification(`Brouillon chargé depuis la ligne ${data.lineNumber}`);
+              // Pour chaque brouillon supplémentaire, créer une nouvelle ligne
+              for (let i = 1; i < drafts.length; i++) {
+                const draft = drafts[i];
+                const container = document.querySelector('.container');
+                const newRuleLine = document.createElement('div');
+                newRuleLine.className = 'rule-line';
+                
+                newRuleLine.innerHTML = `
+                  <div class="rule-column">
+                    <label class="column-label">Source IP</label>
+                    <input type="text" class="input-field sourceIp" placeholder="IP source" value="${draft.sourceIp === "N/A" ? "" : draft.sourceIp}" oninput="validateInput(this, 'ip')">
+                    <button onclick="duplicateField('source')" class="add-button">+</button>
+                  </div>
+                  <div class="rule-column">
+                    <label class="column-label">IP Destination</label>
+                    <input type="text" class="input-field destinationIp" placeholder="IP destination" value="${draft.destinationIp === "N/A" ? "" : draft.destinationIp}" oninput="validateInput(this, 'ip')">
+                    <button onclick="duplicateField('destination')" class="add-button">+</button>
+                  </div>
+                  <div class="rule-column">
+                    <label class="column-label">Protocole</label>
+                    <select class="input-field protocol">
+                      <option value="">Select</option>
+                      <option value="tcp" ${draft.protocol.toLowerCase() === 'tcp' ? 'selected' : ''}>TCP</option>
+                      <option value="udp" ${draft.protocol.toLowerCase() === 'udp' ? 'selected' : ''}>UDP</option>
+                      <option value="icmp" ${draft.protocol.toLowerCase() === 'icmp' ? 'selected' : ''}>ICMP</option>
+                    </select>
+                    <button onclick="duplicateField('protocol')" class="add-button">+</button>
+                  </div>
+                  <div class="rule-column">
+                    <label class="column-label">Service</label>
+                    <input type="text" class="input-field service" placeholder="Service" value="${draft.service === "N/A" ? "" : draft.service}">
+                    <button onclick="duplicateField('service')" class="add-button">+</button>
+                  </div>
+                  <div class="rule-column">
+                    <label class="column-label">Port</label>
+                    <input type="text" class="input-field port" placeholder="Port" value="${draft.port === "N/A" ? "" : draft.port}" oninput="validateInput(this, 'port')">
+                    <button onclick="duplicateField('port')" class="add-button">+</button>
+                  </div>
+                  <div class="rule-column">
+                    <label class="column-label">Authentication</label>
+                    <select class="input-field columnK">
+                      <option value="">Select</option>
+                      <option value="YES" ${draft.columnK === 'YES' ? 'selected' : ''}>YES</option>
+                      <option value="NO" ${draft.columnK === 'NO' ? 'selected' : ''}>NO</option>
+                    </select>
+                    <button onclick="duplicateField('columnK')" class="add-button">+</button>
+                  </div>
+                  <div class="rule-column">
+                    <label class="column-label">Flow encryption</label>
+                    <select class="input-field columnL">
+                      <option value="">Select</option>
+                      <option value="YES" ${draft.columnL === 'YES' ? 'selected' : ''}>YES</option>
+                      <option value="NO" ${draft.columnL === 'NO' ? 'selected' : ''}>NO</option>
+                    </select>
+                    <button onclick="duplicateField('columnL')" class="add-button">+</button>
+                  </div>
+                  <div class="rule-column">
+                    <label class="column-label">Classification</label>
+                    <select class="input-field classification">
+                      <option value="">Select</option>
+                      <option value="Amber" ${draft.classification === 'Amber' ? 'selected' : ''}>Amber</option>
+                      <option value="More senssitive data" ${draft.classification === 'More senssitive data' ? 'selected' : ''}>More senssitive data</option>
+                    </select>
+                    <button onclick="duplicateField('classification')" class="add-button">+</button>
+                  </div>
+                  <div class="rule-column">
+                    <label class="column-label">Code (4 chars)</label>
+                    <input type="text" class="input-field fourCharCode" placeholder="Code (4 chars)" value="${draft.fourCharCode === "N/A" ? "" : draft.fourCharCode}" oninput="validateInput(this, 'fourChar')" maxlength="4">
+                    <button onclick="duplicateField('fourCharCode')" class="add-button">+</button>
+                  </div>
+                  <button onclick="deleteLine(this)" class="delete-button">Supprimer</button>
+                `;
+
+                const saveButton = document.querySelector('.save-button');
+                container.insertBefore(newRuleLine, saveButton.parentElement);
+              }
+              
+              showNotification(`${drafts.length} brouillon(s) chargé(s)`);
             } else {
               showNotification(response.message, true);
             }
           })
           .withFailureHandler(function(error) {
-            showNotification('Erreur lors du chargement du brouillon: ' + error, true);
+            showNotification('Erreur lors du chargement des brouillons: ' + error, true);
           })
           .getDraftData();
       }
