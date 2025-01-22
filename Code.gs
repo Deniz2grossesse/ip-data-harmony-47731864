@@ -40,13 +40,14 @@ function checkDuplicates() {
   const duplicates = [];
   
   for (let i = 0; i < data.length; i++) {
-    if (data[i][0] === "") continue; // Skip empty rows
+    if (data[i][0] === "") continue; // Skip empty rows (colonne D)
     if (data[i][11] !== "") continue; // Skip rows with comments in column O
     
     for (let j = i + 1; j < data.length; j++) {
-      if (data[j][0] === "") continue; // Skip empty rows
+      if (data[j][0] === "") continue; // Skip empty rows (colonne D)
       if (data[j][11] !== "") continue; // Skip rows with comments in column O
       
+      // Vérification des doublons sur les colonnes D (IP source), G (IP destination), H (protocole) et J (port)
       if (data[i][0] === data[j][0] && // IP source (D)
           data[i][3] === data[j][3] && // IP destination (G)
           data[i][4] === data[j][4] && // Protocol (H)
