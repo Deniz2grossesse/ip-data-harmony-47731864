@@ -596,6 +596,34 @@
           .downloadPowerShellScript();
       }
 
+      function loadDraft() {
+        google.script.run
+          .withSuccessHandler(function(response) {
+            if (response.success) {
+              const data = response.data;
+              
+              // Remplir le premier formulaire avec les données
+              document.getElementById('sourceIp').value = data.sourceIp === "N/A" ? "" : data.sourceIp;
+              document.getElementById('destinationIp').value = data.destinationIp === "N/A" ? "" : data.destinationIp;
+              document.getElementById('protocol').value = data.protocol === "N/A" ? "" : data.protocol.toLowerCase();
+              document.getElementById('service').value = data.service === "N/A" ? "" : data.service;
+              document.getElementById('port').value = data.port === "N/A" ? "" : data.port;
+              document.getElementById('columnK').value = data.columnK === "N/A" ? "" : data.columnK;
+              document.getElementById('columnL').value = data.columnL === "N/A" ? "" : data.columnL;
+              document.getElementById('classification').value = data.classification === "N/A" ? "" : data.classification;
+              document.getElementById('fourCharCode').value = data.fourCharCode === "N/A" ? "" : data.fourCharCode;
+              
+              showNotification(`Brouillon chargé depuis la ligne ${data.lineNumber}`);
+            } else {
+              showNotification(response.message, true);
+            }
+          })
+          .withFailureHandler(function(error) {
+            showNotification('Erreur lors du chargement du brouillon: ' + error, true);
+          })
+          .getDraftData();
+      }
+
       document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('sourceIp').addEventListener('input', function() {
           validateInput(this, 'ip');
@@ -680,6 +708,7 @@
         <button onclick="deleteLine(this)" class="delete-button">Supprimer</button>
       </div>
       <div style="display: flex; gap: 16px; justify-content: center; margin-top: 20px;">
+        <button onclick="loadDraft()" class="save-button" style="background-color: #6366f1;">Reprendre le brouillon</button>
         <button onclick="verifyDuplicates()" class="save-button" style="background-color: #4f46e5;">Vérifier</button>
         <button onclick="saveRules()" class="save-button">Valider</button>
         <button onclick="generateScript()" class="save-button" style="background-color: #059669;">Générer Script</button>

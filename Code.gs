@@ -178,6 +178,44 @@ function markDuplicateAsIgnored(lineNumber, referenceLine) {
   }
 }
 
+function getDraftData() {
+  try {
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    const data = sheet.getRange(12, 4, 200, 12).getValues();
+    
+    // Parcourir les lignes jusqu'à trouver une ligne incomplète
+    for (let i = 0; i < data.length; i++) {
+      const row = data[i];
+      const [sourceIp, , , destIp, protocol, service, port, columnK, columnL, classification, fourCharCode] = row;
+      
+      // Si au moins un champ est rempli mais pas tous
+      if (sourceIp || destIp || protocol || service || port || columnK || columnL || classification || fourCharCode) {
+        if (!sourceIp || !destIp || !protocol || !service || !port || !columnK || !columnL || !classification || !fourCharCode) {
+          return {
+            success: true,
+            data: {
+              lineNumber: i + 12,
+              sourceIp: sourceIp || "N/A",
+              destinationIp: destIp || "N/A",
+              protocol: protocol || "N/A",
+              service: service || "N/A",
+              port: port || "N/A",
+              columnK: columnK || "N/A",
+              columnL: columnL || "N/A",
+              classification: classification || "N/A",
+              fourCharCode: fourCharCode || "N/A"
+            }
+          };
+        }
+      }
+    }
+    
+    return { success: false, message: "Aucun brouillon trouvé" };
+  } catch (error) {
+    return { success: false, message: "Erreur lors de la récupération du brouillon: " + error.toString() };
+  }
+}
+
 function generatePowerShellScript() {
   const data = getSheetData();
   let scriptContent = "# Script de test de connectivité réseau\n\n";
@@ -247,3 +285,4 @@ function downloadPowerShellScript() {
   const blob = Utilities.newBlob(scriptContent, 'text/plain', 'test_connectivity.ps1');
   return blob;
 }
+
