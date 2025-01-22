@@ -251,89 +251,88 @@ function downloadPowerShellScript() {
 function generateTopology() {
   const data = getSheetData();
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
-  let topoSheet = spreadsheet.getSheetByName('Topologie');
   
-  // Trouver la dernière ligne remplie
-  let lastFilledRow = 12;
-  for (let i = 0; i < data.length; i++) {
-    if (data[i][0]) { // Si l'IP source existe
-      lastFilledRow = i + 12;
-    }
+  // Créer ou récupérer la feuille Nodes
+  let nodesSheet = spreadsheet.getSheetByName('Nodes');
+  if (!nodesSheet) {
+    nodesSheet = spreadsheet.insertSheet('Nodes');
   }
   
-  // Créer la feuille si elle n'existe pas
-  if (!topoSheet) {
-    topoSheet = spreadsheet.insertSheet('Topologie');
-  } else {
-    // Effacer le contenu existant
-    topoSheet.clear();
+  // Créer ou récupérer la feuille Edges
+  let edgesSheet = spreadsheet.getSheetByName('Edges');
+  if (!edgesSheet) {
+    edgesSheet = spreadsheet.insertSheet('Edges');
   }
   
-  // En-têtes pour les données de noeuds
-  topoSheet.getRange('A1').setValue('Node');
-  topoSheet.getRange('B1').setValue('Type');
+  // Nettoyer les feuilles
+  nodesSheet.clear();
+  edgesSheet.clear();
   
-  // En-têtes pour les connexions
-  topoSheet.getRange('D1').setValue('Source');
-  topoSheet.getRange('E1').setValue('Target');
-  topoSheet.getRange('F1').setValue('Protocol');
+  // En-têtes pour Nodes
+  nodesSheet.getRange('A1:C1').setValues([['ID', 'Label', 'Type']]);
   
+  // En-têtes pour Edges
+  edgesSheet.getRange('A1:C1').setValues([['Source', 'Target', 'Protocol']]);
+  
+  // Collecter les nœuds uniques
+  const nodes = new Map();
+  let nodeId = 1;
+  
+  // Traiter les données pour extraire les nœuds et les liens
   let nodeRow = 2;
   let edgeRow = 2;
-  const nodes = new Set();
   
-  // Ne traiter que les lignes de 12 jusqu'à lastFilledRow
-  for (let i = 0; i <= lastFilledRow - 12; i++) {
-    const line = data[i];
+  data.forEach((line, index) => {
     if (line[0] && line[3] && !line[11]) { // Si IP source et destination existent et la ligne n'est pas ignorée
-      // Ajouter les noeuds s'ils n'existent pas déjà
+      // Traiter l'IP source
       if (!nodes.has(line[0])) {
-        topoSheet.getRange(nodeRow, 1).setValue(line[0]);
-        topoSheet.getRange(nodeRow, 2).setValue('Source');
-        nodes.add(line[0]);
+        nodes.set(line[0], nodeId);
+        nodesSheet.getRange(nodeRow, 1, 1, 3).setValues([[nodeId, line[0], 'Source']]);
+        nodeId++;
         nodeRow++;
       }
       
+      // Traiter l'IP destination
       if (!nodes.has(line[3])) {
-        topoSheet.getRange(nodeRow, 1).setValue(line[3]);
-        topoSheet.getRange(nodeRow, 2).setValue('Destination');
-        nodes.add(line[3]);
+        nodes.set(line[3], nodeId);
+        nodesSheet.getRange(nodeRow, 1, 1, 3).setValues([[nodeId, line[3], 'Destination']]);
+        nodeId++;
         nodeRow++;
       }
       
-      // Ajouter la connexion
-      topoSheet.getRange(edgeRow, 4).setValue(line[0]); // Source
-      topoSheet.getRange(edgeRow, 5).setValue(line[3]); // Target
-      topoSheet.getRange(edgeRow, 6).setValue(line[4] || 'N/A'); // Protocol
+      // Ajouter le lien
+      edgesSheet.getRange(edgeRow, 1, 1, 3).setValues([[
+        nodes.get(line[0]),
+        nodes.get(line[3]),
+        line[4] || 'N/A'
+      ]]);
       edgeRow++;
     }
+  });
+  
+  // Formater les feuilles
+  nodesSheet.autoResizeColumns(1, 3);
+  edgesSheet.autoResizeColumns(1, 3);
+  
+  // Appliquer des styles aux en-têtes
+  nodesSheet.getRange('A1:C1').setBackground('#f3f3f3').setFontWeight('bold');
+  edgesSheet.getRange('A1:C1').setBackground('#f3f3f3').setFontWeight('bold');
+  
+  // Ajouter la formule NETWORKGRAPH dans une nouvelle feuille
+  let visualSheet = spreadsheet.getSheetByName('Network Visualization');
+  if (!visualSheet) {
+    visualSheet = spreadsheet.insertSheet('Network Visualization');
   }
+  visualSheet.clear();
   
-  // Formater la feuille
-  topoSheet.autoResizeColumns(1, 6);
-  topoSheet.getRange('A1:F1').setBackground('#f3f3f3').setFontWeight('bold');
+  // Formule pour le graphe réseau
+  const formula = '=NETWORKGRAPH(Nodes!A2:C' + (nodeRow-1) + ',Edges!A2:C' + (edgeRow-1) + 
+                 ',{"NodeColorMapping";TRUE;"EdgeColorMapping";TRUE;"NodeSize";20;"EdgeWidth";2})';
   
-  // Créer un graphique de type scatter
-  const chartBuilder = topoSheet.newChart();
-  const chart = chartBuilder
-    .addRange(topoSheet.getRange(1, 1, nodeRow-1, 2)) // Données des noeuds
-    .addRange(topoSheet.getRange(1, 4, edgeRow-1, 3)) // Données des connexions
-    .setChartType(Charts.ChartType.SCATTER)
-    .setOption('title', 'Topologie Réseau')
-    .setOption('width', 800)
-    .setOption('height', 600)
-    .setOption('pointSize', 10)
-    .setOption('series', {
-      0: {type: 'scatter', pointShape: 'circle'},
-      1: {type: 'line', lineWidth: 1}
-    })
-    .setPosition(5, 8, 0, 0)
-    .build();
-  
-  topoSheet.insertChart(chart);
+  visualSheet.getRange('A1').setFormula(formula);
   
   return {
     success: true,
-    message: "Topologie générée avec succès dans l'onglet 'Topologie'"
+    message: "Topologie générée avec succès dans les onglets 'Nodes', 'Edges' et 'Network Visualization'"
   };
 }
