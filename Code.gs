@@ -78,7 +78,8 @@ function checkDuplicates() {
   const rowMap = new Map();
   
   data.forEach((row, index) => {
-    if (row[0] !== "" && row[11] === "") {
+    // Vérifier si la ligne est valide (a une IP source et n'est pas marquée comme ignorée)
+    if (row[0] && !row[11]) { // Modification ici pour vérifier correctement les colonnes
       validRows.add(index);
       // Créer une clé unique pour chaque combinaison
       const key = `${row[0]}_${row[3]}_${row[4]}_${row[6]}`;
@@ -113,8 +114,11 @@ function saveData(data) {
     let nextRow = 12;
     
     // Recherche optimisée de la prochaine ligne vide
-    while (nextRow <= 211 && values[nextRow - 12][0] !== "") {
-      nextRow++;
+    for (let i = 0; i < values.length; i++) {
+      if (!values[i][0]) {
+        nextRow = i + 12;
+        break;
+      }
     }
     
     if (nextRow > 211) {
