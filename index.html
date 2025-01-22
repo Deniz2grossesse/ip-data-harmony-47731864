@@ -611,17 +611,6 @@
     <div class="container">
       <div class="header">
         <h1 class="app-title">Gestionnaire de règles réseau</h1>
-        
-        <!-- Ajout du champ de recherche -->
-        <div class="search-container" style="margin-bottom: 20px;">
-          <input 
-            type="text" 
-            class="input-field" 
-            placeholder="Rechercher dans les règles..." 
-            onkeyup="filterRules(this.value)"
-            style="width: 100%; max-width: 300px; margin: 0 auto; display: block;"
-          >
-        </div>
 
         <div class="rule-line">
           <div class="rule-column">
@@ -728,16 +717,6 @@
         if (isDarkMode) {
           document.body.classList.add('dark-mode');
         }
-      }
-
-      // Recherche et filtrage
-      function filterRules(searchTerm) {
-        const ruleLines = document.querySelectorAll('.rule-line');
-        ruleLines.forEach(line => {
-          const text = line.textContent.toLowerCase();
-          const isVisible = text.includes(searchTerm.toLowerCase());
-          line.style.display = isVisible ? 'grid' : 'none';
-        });
       }
 
       // Export CSV

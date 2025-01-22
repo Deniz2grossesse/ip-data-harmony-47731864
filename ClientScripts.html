@@ -21,16 +21,6 @@
     document.querySelector('.container').style.color = '#000000';
   }
 
-  // Recherche et filtrage
-  function filterRules(searchTerm) {
-    const ruleLines = document.querySelectorAll('.rule-line');
-    ruleLines.forEach(line => {
-      const text = line.textContent.toLowerCase();
-      const isVisible = text.includes(searchTerm.toLowerCase());
-      line.style.display = isVisible ? 'grid' : 'none';
-    });
-  }
-
   // Export CSV
   function exportToCSV() {
     const rules = [];
