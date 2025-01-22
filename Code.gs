@@ -52,42 +52,52 @@ function validateFourCharField(value) {
   return value.length === 4;
 }
 
-function checkDuplicates() {
+// Cache pour stocker les données de la feuille
+let sheetDataCache = null;
+let lastCacheUpdate = null;
+const CACHE_DURATION = 1000 * 30; // 30 secondes
+
+function getSheetData() {
+  const now = new Date().getTime();
+  if (sheetDataCache && lastCacheUpdate && (now - lastCacheUpdate) < CACHE_DURATION) {
+    return sheetDataCache;
+  }
+
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-  // Récupérer toutes les données en une seule fois
-  const data = sheet.getRange(12, 4, 200, 12).getValues();
+  sheetDataCache = sheet.getRange(12, 4, 200, 12).getValues();
+  lastCacheUpdate = now;
+  return sheetDataCache;
+}
+
+function checkDuplicates() {
+  const data = getSheetData();
   const duplicates = [];
   const validRows = new Set();
   
-  // Créer un index des lignes valides pour optimiser la recherche
+  // Créer un index des lignes valides et un map pour la recherche rapide
+  const rowMap = new Map();
+  
   data.forEach((row, index) => {
     if (row[0] !== "" && row[11] === "") {
       validRows.add(index);
-    }
-  });
-  
-  // Utiliser l'index pour vérifier uniquement les lignes valides
-  for (const i of validRows) {
-    for (const j of validRows) {
-      if (i >= j) continue;
-      
-      if (data[i][0] === data[j][0] && // IP source (D)
-          data[i][3] === data[j][3] && // IP destination (G)
-          data[i][4] === data[j][4] && // Protocol (H)
-          data[i][6] === data[j][6]) { // Port (J)
+      // Créer une clé unique pour chaque combinaison
+      const key = `${row[0]}_${row[3]}_${row[4]}_${row[6]}`;
+      if (rowMap.has(key)) {
         duplicates.push({
-          line1: i + 12,
-          line2: j + 12,
+          line1: rowMap.get(key) + 12,
+          line2: index + 12,
           data: {
-            sourceIp: data[i][0],
-            destinationIp: data[i][3],
-            protocol: data[i][4],
-            port: data[i][6]
+            sourceIp: row[0],
+            destinationIp: row[3],
+            protocol: row[4],
+            port: row[6]
           }
         });
+      } else {
+        rowMap.set(key, index);
       }
     }
-  }
+  });
   
   return {
     success: duplicates.length === 0,
@@ -99,10 +109,10 @@ function checkDuplicates() {
 function saveData(data) {
   try {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    const values = getSheetData();
     let nextRow = 12;
     
-    // Optimisation : Recherche de la prochaine ligne vide en une seule opération
-    const values = sheet.getRange(12, 4, 200, 1).getValues();
+    // Recherche optimisée de la prochaine ligne vide
     while (nextRow <= 211 && values[nextRow - 12][0] !== "") {
       nextRow++;
     }
@@ -113,23 +123,25 @@ function saveData(data) {
     
     // Préparation des données en mémoire
     const newValues = data.map(row => [
-      row.sourceIp,         // D
-      '',                   // E
-      '',                   // F
-      row.destinationIp,    // G
-      row.protocol,         // H
-      row.service,         // I
-      row.port,            // J
-      row.columnK,         // K
-      row.columnL,         // L
-      row.classification,   // M
-      row.fourCharCode,    // N
-      ''                    // O
+      row.sourceIp,
+      '',
+      '',
+      row.destinationIp,
+      row.protocol,
+      row.service,
+      row.port,
+      row.columnK,
+      row.columnL,
+      row.classification,
+      row.fourCharCode,
+      ''
     ]);
     
     // Écriture en une seule opération
     if (newValues.length > 0) {
       sheet.getRange(nextRow, 4, newValues.length, newValues[0].length).setValues(newValues);
+      // Mise à jour du cache
+      sheetDataCache = null;
     }
     
     return { success: true, message: "Données enregistrées avec succès" };
@@ -142,6 +154,8 @@ function deleteRow(rowNumber) {
   try {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
     sheet.deleteRow(rowNumber);
+    // Invalider le cache après la suppression
+    sheetDataCache = null;
     return { success: true, message: "Ligne supprimée avec succès" };
   } catch (error) {
     return { success: false, message: "Erreur lors de la suppression: " + error.toString() };
@@ -152,6 +166,8 @@ function markDuplicateAsIgnored(lineNumber, referenceLine) {
   try {
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
     sheet.getRange(lineNumber, 15).setValue(`Doublon avec la ligne ${referenceLine} - ignoré`);
+    // Invalider le cache après la modification
+    sheetDataCache = null;
     return { success: true, message: "Doublon marqué comme ignoré" };
   } catch (error) {
     return { success: false, message: "Erreur lors du marquage: " + error.toString() };
