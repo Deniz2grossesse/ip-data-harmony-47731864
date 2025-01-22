@@ -187,7 +187,7 @@ function generatePowerShellScript() {
   // Créer la feuille si elle n'existe pas
   if (!scriptSheet) {
     scriptSheet = spreadsheet.insertSheet('Scripts');
-    scriptSheet.getRange('A1').setValue('Ligne');
+    scriptSheet.getRange('A1').setValue('IP Source');
     scriptSheet.getRange('B1').setValue('Script');
   } else {
     // Effacer le contenu existant sauf les en-têtes
@@ -226,11 +226,11 @@ function generatePowerShellScript() {
         }
         
         if (scriptLine) {
-          scriptSheet.getRange(currentRow, 1).setValue(index + 12); // +12 car les données commencent à la ligne 12
+          scriptSheet.getRange(currentRow, 1).setValue(sourceIp); // IP Source en colonne A
           scriptSheet.getRange(currentRow, 2).setValue(scriptLine);
           currentRow++;
           
-          scriptContent += `# Test de la règle ${index + 1}\n${scriptLine}\n`;
+          scriptContent += `# Test depuis ${sourceIp}\n${scriptLine}\n`;
         }
       }
     }
