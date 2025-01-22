@@ -32,7 +32,7 @@
 
       .rule-line {
         display: grid;
-        grid-template-columns: repeat(4, 1fr) auto;
+        grid-template-columns: repeat(5, 1fr) auto;
         gap: 16px;
         margin-bottom: 24px;
         align-items: start;
@@ -245,6 +245,7 @@
         const destinationIp = lastRuleLine.querySelector('.destinationIp, #destinationIp').value;
         const protocol = lastRuleLine.querySelector('.protocol, #protocol').value;
         const port = lastRuleLine.querySelector('.port, #port').value;
+        const columnK = lastRuleLine.querySelector('.columnK, #columnK').value;
 
         newRuleLine.innerHTML = `
           <div class="rule-column">
@@ -269,7 +270,12 @@
             <button onclick="duplicateField('port')" class="add-button">+</button>
           </div>
           <div class="rule-column">
-            <input type="text" class="input-field comment" placeholder="Commentaire" readonly>
+            <select class="input-field columnK">
+              <option value="">Select</option>
+              <option value="YES" ${columnK === 'YES' ? 'selected' : ''}>YES</option>
+              <option value="NO" ${columnK === 'NO' ? 'selected' : ''}>NO</option>
+            </select>
+            <button onclick="duplicateField('columnK')" class="add-button">+</button>
           </div>
           <button onclick="deleteLine(this)" class="delete-button">Supprimer</button>
         `;
@@ -285,6 +291,8 @@
           newRuleLine.querySelector('.protocol').focus();
         } else if (type === 'port') {
           newRuleLine.querySelector('.port').focus();
+        } else if (type === 'columnK') {
+          newRuleLine.querySelector('.columnK').focus();
         }
       }
 
@@ -339,6 +347,7 @@
           const destinationIp = line.querySelector('.destinationIp, #destinationIp').value;
           const protocol = line.querySelector('.protocol, #protocol').value;
           const port = line.querySelector('.port, #port').value;
+          const columnK = line.querySelector('.columnK, #columnK').value;
           
           if (sourceIp && destinationIp && protocol && port) {
             if (!validateIpFormat(sourceIp) || !validateIpFormat(destinationIp) || !validatePort(port)) {
@@ -349,7 +358,8 @@
               sourceIp: sourceIp,
               destinationIp: destinationIp,
               protocol: protocol,
-              port: port
+              port: port,
+              columnK: columnK
             });
           }
         });
@@ -501,7 +511,12 @@
           <button onclick="duplicateField('port')" class="add-button">+</button>
         </div>
         <div class="rule-column">
-          <input type="text" class="input-field comment" placeholder="Commentaire" readonly>
+          <select id="columnK" class="input-field">
+            <option value="">Select</option>
+            <option value="YES">YES</option>
+            <option value="NO">NO</option>
+          </select>
+          <button onclick="duplicateField('columnK')" class="add-button">+</button>
         </div>
         <button onclick="deleteLine(this)" class="delete-button">Supprimer</button>
       </div>

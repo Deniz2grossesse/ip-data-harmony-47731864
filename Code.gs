@@ -96,6 +96,7 @@ function saveData(data) {
         sheet.getRange(nextRow, 7).setValue(row.destinationIp); // Colonne G
         sheet.getRange(nextRow, 8).setValue(row.protocol); // Colonne H
         sheet.getRange(nextRow, 10).setValue(row.port); // Colonne J
+        sheet.getRange(nextRow, 11).setValue(row.columnK); // Colonne K
         nextRow++;
       }
     });
