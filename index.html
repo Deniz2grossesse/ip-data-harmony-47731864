@@ -6,235 +6,103 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Network Rules Manager</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <style>
-      * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-      }
+    <?!= include('styles'); ?>
+  </head>
+  <body>
+    <div class="container">
+      <h1 class="app-title">Network Rules Manager</h1>
+      <div class="rule-line">
+        <div class="rule-column">
+          <label class="column-label">Source IP</label>
+          <input type="text" id="sourceIp" placeholder="IP source" class="input-field" oninput="validateInput(this, 'ip')">
+          <button onclick="duplicateField('source')" class="add-button">+</button>
+        </div>
+        <div class="rule-column">
+          <label class="column-label">IP Destination</label>
+          <input type="text" id="destinationIp" placeholder="IP destination" class="input-field" oninput="validateInput(this, 'ip')">
+          <button onclick="duplicateField('destination')" class="add-button">+</button>
+        </div>
+        <div class="rule-column">
+          <label class="column-label">Protocole</label>
+          <select id="protocol" class="input-field">
+            <option value="">Select</option>
+            <option value="tcp">TCP</option>
+            <option value="udp">UDP</option>
+            <option value="icmp">ICMP</option>
+          </select>
+          <button onclick="duplicateField('protocol')" class="add-button">+</button>
+        </div>
+        <div class="rule-column">
+          <label class="column-label">Service</label>
+          <input type="text" id="service" placeholder="Service" class="input-field">
+          <button onclick="duplicateField('service')" class="add-button">+</button>
+        </div>
+        <div class="rule-column">
+          <label class="column-label">Port</label>
+          <input type="text" id="port" placeholder="Port" class="input-field" oninput="validateInput(this, 'port')">
+          <button onclick="duplicateField('port')" class="add-button">+</button>
+        </div>
+        <div class="rule-column">
+          <label class="column-label">Authentication</label>
+          <select id="columnK" class="input-field">
+            <option value="">Select</option>
+            <option value="YES">YES</option>
+            <option value="NO">NO</option>
+          </select>
+          <button onclick="duplicateField('columnK')" class="add-button">+</button>
+        </div>
+        <div class="rule-column">
+          <label class="column-label">Flow encryption</label>
+          <select id="columnL" class="input-field">
+            <option value="">Select</option>
+            <option value="YES">YES</option>
+            <option value="NO">NO</option>
+          </select>
+          <button onclick="duplicateField('columnL')" class="add-button">+</button>
+        </div>
+        <div class="rule-column">
+          <label class="column-label">Classification</label>
+          <select id="classification" class="input-field">
+            <option value="">Select</option>
+            <option value="Amber">Amber</option>
+            <option value="More senssitive data">More senssitive data</option>
+          </select>
+          <button onclick="duplicateField('classification')" class="add-button">+</button>
+        </div>
+        <div class="rule-column">
+          <label class="column-label">APP code</label>
+          <input type="text" id="fourCharCode" placeholder="Code (4 chars)" class="input-field" oninput="validateInput(this, 'fourChar')" maxlength="4">
+          <button onclick="duplicateField('fourCharCode')" class="add-button">+</button>
+        </div>
+        <button onclick="deleteLine(this)" class="delete-button">Supprimer</button>
+      </div>
+      <div style="display: flex; gap: 16px; justify-content: center; margin-top: 20px;">
+        <button onclick="loadDraft()" class="save-button" style="background-color: #6366f1;">Reprendre le brouillon</button>
+        <button onclick="verifyDuplicates()" class="save-button" style="background-color: #4f46e5;">Vérifier</button>
+        <button onclick="saveRules()" class="save-button">Valider</button>
+        <button onclick="generateScript()" class="save-button" style="background-color: #059669;">Générer Script</button>
+      </div>
 
-      body {
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-        padding: 20px;
-        background: linear-gradient(109.6deg, rgba(223,234,247,1) 11.2%, rgba(244,248,252,1) 91.1%);
-        min-height: 100vh;
-      }
+      <div id="duplicatesContainer" class="duplicates-container">
+        <table class="duplicates-table">
+          <thead>
+            <tr>
+              <th>Lignes</th>
+              <th>IP Source</th>
+              <th>IP Destination</th>
+              <th>Protocole</th>
+              <th>Port</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="duplicatesTableBody">
+          </tbody>
+        </table>
+      </div>
+    </div>
+    
+    <div id="notification" class="notification hidden"></div>
 
-      .container {
-        max-width: 1200px;
-        margin: 0 auto;
-        background: rgba(255, 255, 255, 0.9);
-        padding: 2rem;
-        border-radius: 16px;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-        backdrop-filter: blur(10px);
-      }
-
-      .app-title {
-        text-align: center;
-        font-size: 24px;
-        font-weight: 600;
-        margin-bottom: 2rem;
-        color: #1a365d;
-      }
-
-      .rule-line {
-        display: grid;
-        grid-template-columns: 1.3fr 1.3fr 0.8fr 1fr 1fr 0.8fr 0.8fr 0.8fr 1fr;
-        gap: 8px;
-        margin-bottom: 24px;
-        align-items: start;
-      }
-
-      .rule-column {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-      }
-
-      .column-label {
-        font-size: 12px;
-        font-weight: 500;
-        color: #4a5568;
-        margin-bottom: 2px;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-      }
-
-      .input-field {
-        width: 100%;
-        padding: 6px 8px;
-        border: 1px solid #e2e8f0;
-        border-radius: 6px;
-        font-size: 12px;
-        transition: all 0.2s ease;
-        background: white;
-        height: 32px;
-      }
-
-      .input-field:focus {
-        outline: none;
-        border-color: #94a3b8;
-        box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.1);
-      }
-
-      .add-button {
-        width: 24px;
-        height: 24px;
-        border-radius: 50%;
-        border: 2px solid #3b82f6;
-        background: white;
-        color: #3b82f6;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        font-size: 16px;
-        margin: 2px auto;
-        transition: all 0.2s ease;
-        padding: 0;
-        line-height: 1;
-      }
-
-      .add-button:hover {
-        background: #3b82f6;
-        color: white;
-        transform: scale(1.1);
-      }
-
-      .delete-button {
-        background-color: #ef4444;
-        color: white;
-        border: none;
-        padding: 6px 12px;
-        border-radius: 6px;
-        cursor: pointer;
-        font-size: 12px;
-        transition: all 0.2s ease;
-        height: 32px;
-        margin-top: 20px;
-      }
-
-      .notification {
-        position: fixed;
-        bottom: 24px;
-        right: 24px;
-        padding: 12px 24px;
-        border-radius: 8px;
-        color: white;
-        font-weight: 500;
-        opacity: 0;
-        transform: translateY(10px);
-        transition: all 0.3s ease;
-        z-index: 1000;
-      }
-
-      .notification.hidden {
-        display: none;
-      }
-
-      .notification:not(.hidden) {
-        opacity: 1;
-        transform: translateY(0);
-      }
-
-      .notification.error {
-        background-color: #ef4444;
-      }
-
-      .notification:not(.error) {
-        background-color: #10b981;
-      }
-
-      @media (max-width: 768px) {
-        .rule-line {
-          grid-template-columns: 1fr;
-        }
-        
-        .container {
-          padding: 1rem;
-        }
-      }
-
-      .save-button {
-        display: block;
-        margin: 20px auto 0;
-        padding: 12px 24px;
-        background-color: #3b82f6;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s ease;
-      }
-
-      .save-button:hover {
-        background-color: #2563eb;
-        transform: translateY(-1px);
-      }
-
-      .save-button:active {
-        transform: translateY(0);
-      }
-
-      .duplicates-table {
-        width: 100%;
-        margin-top: 20px;
-        border-collapse: collapse;
-        background: white;
-        border-radius: 8px;
-        overflow: hidden;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-      }
-
-      .duplicates-table th,
-      .duplicates-table td {
-        padding: 12px;
-        text-align: left;
-        border-bottom: 1px solid #e2e8f0;
-      }
-
-      .duplicates-table th {
-        background-color: #f8fafc;
-        font-weight: 600;
-        color: #64748b;
-      }
-
-      .duplicates-table tr:hover {
-        background-color: #f8fafc;
-      }
-
-      .action-buttons {
-        display: flex;
-        gap: 8px;
-      }
-
-      .ignore-button {
-        background-color: #94a3b8;
-        color: white;
-        border: none;
-        padding: 6px 12px;
-        border-radius: 6px;
-        cursor: pointer;
-        font-size: 14px;
-        transition: all 0.2s ease;
-      }
-
-      .ignore-button:hover {
-        background-color: #64748b;
-      }
-
-      .duplicates-container {
-        display: none;
-        margin-top: 24px;
-      }
-
-      .duplicates-container.visible {
-        display: block;
-      }
-    </style>
     <script>
       function validateIpFormat(ip) {
         const regex = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/;
@@ -704,100 +572,5 @@
         });
       });
     </script>
-  </head>
-  <body>
-    <div class="container">
-      <h1 class="app-title">Application</h1>
-      <div class="rule-line">
-        <div class="rule-column">
-          <label class="column-label">Source IP</label>
-          <input type="text" id="sourceIp" placeholder="IP source" class="input-field" oninput="validateInput(this, 'ip')">
-          <button onclick="duplicateField('source')" class="add-button">+</button>
-        </div>
-        <div class="rule-column">
-          <label class="column-label">IP Destination</label>
-          <input type="text" id="destinationIp" placeholder="IP destination" class="input-field" oninput="validateInput(this, 'ip')">
-          <button onclick="duplicateField('destination')" class="add-button">+</button>
-        </div>
-        <div class="rule-column">
-          <label class="column-label">Protocole</label>
-          <select id="protocol" class="input-field">
-            <option value="">Select</option>
-            <option value="tcp">TCP</option>
-            <option value="udp">UDP</option>
-            <option value="icmp">ICMP</option>
-          </select>
-          <button onclick="duplicateField('protocol')" class="add-button">+</button>
-        </div>
-        <div class="rule-column">
-          <label class="column-label">Service</label>
-          <input type="text" id="service" placeholder="Service" class="input-field">
-          <button onclick="duplicateField('service')" class="add-button">+</button>
-        </div>
-        <div class="rule-column">
-          <label class="column-label">Port</label>
-          <input type="text" id="port" placeholder="Port" class="input-field" oninput="validateInput(this, 'port')">
-          <button onclick="duplicateField('port')" class="add-button">+</button>
-        </div>
-        <div class="rule-column">
-          <label class="column-label">Authentication</label>
-          <select id="columnK" class="input-field">
-            <option value="">Select</option>
-            <option value="YES">YES</option>
-            <option value="NO">NO</option>
-          </select>
-          <button onclick="duplicateField('columnK')" class="add-button">+</button>
-        </div>
-        <div class="rule-column">
-          <label class="column-label">Flow encryption</label>
-          <select id="columnL" class="input-field">
-            <option value="">Select</option>
-            <option value="YES">YES</option>
-            <option value="NO">NO</option>
-          </select>
-          <button onclick="duplicateField('columnL')" class="add-button">+</button>
-        </div>
-        <div class="rule-column">
-          <label class="column-label">Classification</label>
-          <select id="classification" class="input-field">
-            <option value="">Select</option>
-            <option value="Amber">Amber</option>
-            <option value="More senssitive data">More senssitive data</option>
-          </select>
-          <button onclick="duplicateField('classification')" class="add-button">+</button>
-        </div>
-        <div class="rule-column">
-          <label class="column-label">APP code</label>
-          <input type="text" id="fourCharCode" placeholder="Code (4 chars)" class="input-field" oninput="validateInput(this, 'fourChar')" maxlength="4">
-          <button onclick="duplicateField('fourCharCode')" class="add-button">+</button>
-        </div>
-        <button onclick="deleteLine(this)" class="delete-button">Supprimer</button>
-      </div>
-      <div style="display: flex; gap: 16px; justify-content: center; margin-top: 20px;">
-        <button onclick="loadDraft()" class="save-button" style="background-color: #6366f1;">Reprendre le brouillon</button>
-        <button onclick="verifyDuplicates()" class="save-button" style="background-color: #4f46e5;">Vérifier</button>
-        <button onclick="saveRules()" class="save-button">Valider</button>
-        <button onclick="generateScript()" class="save-button" style="background-color: #059669;">Générer Script</button>
-      </div>
-
-      <div id="duplicatesContainer" class="duplicates-container">
-        <table class="duplicates-table">
-          <thead>
-            <tr>
-              <th>Lignes</th>
-              <th>IP Source</th>
-              <th>IP Destination</th>
-              <th>Protocole</th>
-              <th>Port</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="duplicatesTableBody">
-          </tbody>
-        </table>
-      </div>
-    </div>
-    
-    <div id="notification" class="notification hidden"></div>
   </body>
 </html>
