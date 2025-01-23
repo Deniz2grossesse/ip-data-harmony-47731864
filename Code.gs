@@ -1,5 +1,4 @@
 function doGet() {
-  console.log('doGet function called');
   return HtmlService.createTemplateFromFile('index')
     .evaluate()
     .setTitle('Network Rules Manager')
