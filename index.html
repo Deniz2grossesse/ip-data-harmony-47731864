@@ -6,19 +6,237 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Network Rules Manager</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <?!= include('styles'); ?>
-    <script>
-      console.log('Page loading started');
-      
-      document.addEventListener('DOMContentLoaded', function() {
-        console.log('DOM fully loaded');
-        // Log initial state of key elements
-        console.log('Container element:', document.querySelector('.container'));
-        console.log('Rule lines:', document.getElementsByClassName('rule-line').length);
-      });
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
 
+      body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        padding: 20px;
+        background: linear-gradient(109.6deg, rgba(223,234,247,1) 11.2%, rgba(244,248,252,1) 91.1%);
+        min-height: 100vh;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 2rem;
+        border-radius: 16px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        backdrop-filter: blur(10px);
+      }
+
+      .app-title {
+        text-align: center;
+        font-size: 24px;
+        font-weight: 600;
+        margin-bottom: 2rem;
+        color: #1a365d;
+      }
+
+      .rule-line {
+        display: grid;
+        grid-template-columns: 1.3fr 1.3fr 0.8fr 1fr 1fr 0.8fr 0.8fr 0.8fr 1fr;
+        gap: 8px;
+        margin-bottom: 24px;
+        align-items: start;
+      }
+
+      .rule-column {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .column-label {
+        font-size: 12px;
+        font-weight: 500;
+        color: #4a5568;
+        margin-bottom: 2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .input-field {
+        width: 100%;
+        padding: 6px 8px;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        font-size: 12px;
+        transition: all 0.2s ease;
+        background: white;
+        height: 32px;
+      }
+
+      .input-field:focus {
+        outline: none;
+        border-color: #94a3b8;
+        box-shadow: 0 0 0 3px rgba(148, 163, 184, 0.1);
+      }
+
+      .add-button {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        border: 2px solid #3b82f6;
+        background: white;
+        color: #3b82f6;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 16px;
+        margin: 2px auto;
+        transition: all 0.2s ease;
+        padding: 0;
+        line-height: 1;
+      }
+
+      .add-button:hover {
+        background: #3b82f6;
+        color: white;
+        transform: scale(1.1);
+      }
+
+      .delete-button {
+        background-color: #ef4444;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 12px;
+        transition: all 0.2s ease;
+        height: 32px;
+        margin-top: 20px;
+      }
+
+      .notification {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        padding: 12px 24px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 500;
+        opacity: 0;
+        transform: translateY(10px);
+        transition: all 0.3s ease;
+        z-index: 1000;
+      }
+
+      .notification.hidden {
+        display: none;
+      }
+
+      .notification:not(.hidden) {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      .notification.error {
+        background-color: #ef4444;
+      }
+
+      .notification:not(.error) {
+        background-color: #10b981;
+      }
+
+      @media (max-width: 768px) {
+        .rule-line {
+          grid-template-columns: 1fr;
+        }
+        
+        .container {
+          padding: 1rem;
+        }
+      }
+
+      .save-button {
+        display: block;
+        margin: 20px auto 0;
+        padding: 12px 24px;
+        background-color: #3b82f6;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .save-button:hover {
+        background-color: #2563eb;
+        transform: translateY(-1px);
+      }
+
+      .save-button:active {
+        transform: translateY(0);
+      }
+
+      .duplicates-table {
+        width: 100%;
+        margin-top: 20px;
+        border-collapse: collapse;
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      }
+
+      .duplicates-table th,
+      .duplicates-table td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #e2e8f0;
+      }
+
+      .duplicates-table th {
+        background-color: #f8fafc;
+        font-weight: 600;
+        color: #64748b;
+      }
+
+      .duplicates-table tr:hover {
+        background-color: #f8fafc;
+      }
+
+      .action-buttons {
+        display: flex;
+        gap: 8px;
+      }
+
+      .ignore-button {
+        background-color: #94a3b8;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.2s ease;
+      }
+
+      .ignore-button:hover {
+        background-color: #64748b;
+      }
+
+      .duplicates-container {
+        display: none;
+        margin-top: 24px;
+      }
+
+      .duplicates-container.visible {
+        display: block;
+      }
+    </style>
+    <script>
       function validateIpFormat(ip) {
-        console.log('Validating IP:', ip);
         const regex = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/;
         if (!regex.test(ip)) return false;
         
@@ -39,22 +257,12 @@
       }
 
       function duplicateField(type) {
-        console.log('Duplicating field of type:', type);
         const container = document.querySelector('.container');
-        if (!container) {
-          console.error('Container not found');
-          return;
-        }
-
-        const ruleLines = document.getElementsByClassName('rule-line');
-        if (ruleLines.length === 0) {
-          console.error('No rule lines found');
-          return;
-        }
-
-        const lastRuleLine = ruleLines[ruleLines.length - 1];
         const newRuleLine = document.createElement('div');
         newRuleLine.className = 'rule-line';
+        
+        const ruleLines = document.getElementsByClassName('rule-line');
+        const lastRuleLine = ruleLines[ruleLines.length - 1];
         
         const sourceIp = lastRuleLine.querySelector('.sourceIp, #sourceIp').value;
         const destinationIp = lastRuleLine.querySelector('.destinationIp, #destinationIp').value;
@@ -133,11 +341,7 @@
         `;
 
         const saveButton = document.querySelector('.save-button');
-        if (saveButton && saveButton.parentElement) {
-          container.insertBefore(newRuleLine, saveButton.parentElement);
-        } else {
-          container.appendChild(newRuleLine);
-        }
+        container.insertBefore(newRuleLine, saveButton.parentElement);
 
         if (type === 'source') {
           newRuleLine.querySelector('.sourceIp').focus();
@@ -161,11 +365,6 @@
       }
 
       function validateInput(input, type) {
-        if (!input) {
-          console.error('Input element not found');
-          return;
-        }
-
         if (type === 'ip') {
           if (!validateIpFormat(input.value) && input.value !== '') {
             input.style.borderColor = 'red';
@@ -195,64 +394,32 @@
 
       function showNotification(message, isError = false) {
         const notification = document.getElementById('notification');
-        if (notification) {
-          notification.textContent = message;
-          notification.classList.remove('hidden');
-          notification.classList.toggle('error', isError);
-          
-          setTimeout(() => {
-            notification.classList.add('hidden');
-          }, 3000);
-        }
-      }
-
-      function deleteLine(button) {
-        console.log('Deleting line');
-        if (!button) {
-          console.error('Delete button not found');
-          return;
-        }
-
-        const ruleLine = button.closest('.rule-line');
-        if (!ruleLine) {
-          console.error('Parent rule line not found');
-          return;
-        }
-
-        const lineNumber = Array.from(ruleLine.parentElement.children).indexOf(ruleLine) + 12;
+        notification.textContent = message;
+        notification.classList.remove('hidden');
+        notification.classList.toggle('error', isError);
         
-        google.script.run
-          .withSuccessHandler(function(response) {
-            if (response.success) {
-              ruleLine.remove();
-              showNotification('Ligne supprimée avec succès');
-            } else {
-              showNotification(response.message, true);
-            }
-          })
-          .withFailureHandler(function(error) {
-            showNotification('Erreur lors de la suppression: ' + error, true);
-          })
-          .deleteRow(lineNumber);
+        setTimeout(() => {
+          notification.classList.add('hidden');
+        }, 3000);
       }
 
       function saveRules() {
-        console.log('Attempting to save rules');
         const rules = [];
         const ruleLines = document.querySelectorAll('.rule-line');
         let hasValidationError = false;
         
         ruleLines.forEach((line, index) => {
-          const sourceIp = line.querySelector('.sourceIp, #sourceIp')?.value;
-          const destinationIp = line.querySelector('.destinationIp, #destinationIp')?.value;
-          const protocol = line.querySelector('.protocol, #protocol')?.value;
-          const service = line.querySelector('.service, #service')?.value;
-          const port = line.querySelector('.port, #port')?.value;
-          const columnK = line.querySelector('.columnK, #columnK')?.value;
-          const columnL = line.querySelector('.columnL, #columnL')?.value;
-          const classification = line.querySelector('.classification, #classification')?.value;
-          const fourCharCode = line.querySelector('.fourCharCode, #fourCharCode')?.value;
+          const sourceIp = line.querySelector('.sourceIp, #sourceIp').value;
+          const destinationIp = line.querySelector('.destinationIp, #destinationIp').value;
+          const protocol = line.querySelector('.protocol, #protocol').value;
+          const service = line.querySelector('.service, #service').value;
+          const port = line.querySelector('.port, #port').value;
+          const columnK = line.querySelector('.columnK, #columnK').value;
+          const columnL = line.querySelector('.columnL, #columnL').value;
+          const classification = line.querySelector('.classification, #classification').value;
+          const fourCharCode = line.querySelector('.fourCharCode, #fourCharCode').value;
           
+          // Vérification des champs obligatoires
           if (!sourceIp) {
             showNotification(`Valeur non saisie pour IP source en ligne ${index + 1}`, true);
             hasValidationError = true;
@@ -343,63 +510,25 @@
           return;
         }
         
+        // Vérification des doublons avant la sauvegarde
         google.script.run
-          .withSuccessHandler(function(response) {
-            showNotification(response.message, !response.success);
-          })
-          .withFailureHandler(function(error) {
-            showNotification('Erreur lors de la sauvegarde: ' + error, true);
-          })
-          .saveData(rules);
-      }
-
-      function loadDraft() {
-        google.script.run
-          .withSuccessHandler(function(response) {
-            if (response.success) {
-              showNotification(response.message);
-              // Implement draft loading logic here
+          .withSuccessHandler(function(duplicateResponse) {
+            if (duplicateResponse.success) {
+              // Si pas de doublons, on sauvegarde
+              google.script.run
+                .withSuccessHandler(function(response) {
+                  showNotification(response.message, !response.success);
+                  if (response.success) {
+                    verifyDuplicates(); // Rafraîchir la liste des doublons après la sauvegarde
+                  }
+                })
+                .withFailureHandler(function(error) {
+                  showNotification('Erreur lors de la sauvegarde: ' + error, true);
+                })
+                .saveData(rules);
             } else {
-              showNotification(response.message, true);
-            }
-          })
-          .withFailureHandler(function(error) {
-            showNotification('Erreur lors du chargement du brouillon: ' + error, true);
-          })
-          .getDraftData();
-      }
-
-      function verifyDuplicates() {
-        google.script.run
-          .withSuccessHandler(function(response) {
-            if (response.duplicates && response.duplicates.length > 0) {
-              const duplicatesContainer = document.getElementById('duplicatesContainer');
-              const tableBody = document.getElementById('duplicatesTableBody');
-              
-              if (duplicatesContainer && tableBody) {
-                tableBody.innerHTML = '';
-                response.duplicates.forEach(duplicate => {
-                  const row = document.createElement('tr');
-                  row.innerHTML = `
-                    <td>${duplicate.line1} - ${duplicate.line2}</td>
-                    <td>${duplicate.data.sourceIp}</td>
-                    <td>${duplicate.data.destinationIp}</td>
-                    <td>${duplicate.data.protocol}</td>
-                    <td>${duplicate.data.port}</td>
-                    <td class="action-buttons">
-                      <button onclick="ignoreDuplicate(${duplicate.line2}, ${duplicate.line1})" class="ignore-button">
-                        Ignorer
-                      </button>
-                    </td>
-                  `;
-                  tableBody.appendChild(row);
-                });
-                duplicatesContainer.classList.add('visible');
-              }
-              
-              showNotification('Des doublons ont été détectés', true);
-            } else {
-              showNotification('Aucun doublon trouvé');
+              showNotification('Des doublons ont été détectés. Veuillez les vérifier avant de sauvegarder.', true);
+              verifyDuplicates();
             }
           })
           .withFailureHandler(function(error) {
@@ -408,26 +537,177 @@
           .checkDuplicates();
       }
 
-      function ignoreDuplicate(lineNumber, referenceLine) {
+      function verifyDuplicates() {
+        google.script.run
+          .withSuccessHandler(function(response) {
+            const duplicatesContainer = document.getElementById('duplicatesContainer');
+            const duplicatesTableBody = document.getElementById('duplicatesTableBody');
+            
+            if (!response.success && response.duplicates && response.duplicates.length > 0) {
+              duplicatesTableBody.innerHTML = '';
+              response.duplicates.forEach((duplicate, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                  <td>Doublons entre ligne ${duplicate.line1} et ${duplicate.line2}</td>
+                  <td>${duplicate.data.sourceIp}</td>
+                  <td>${duplicate.data.destinationIp}</td>
+                  <td>${duplicate.data.protocol}</td>
+                  <td>${duplicate.data.port}</td>
+                  <td>
+                    <div class="action-buttons">
+                      <button onclick="ignoreDuplicate(${index})" class="ignore-button">Ignorer</button>
+                      <button onclick="deleteDuplicate(${index})" class="delete-button">Supprimer</button>
+                    </div>
+                  </td>
+                `;
+                duplicatesTableBody.appendChild(row);
+              });
+              duplicatesContainer.classList.add('visible');
+            } else {
+              duplicatesContainer.classList.remove('visible');
+            }
+            showNotification(response.message, !response.success);
+          })
+          .withFailureHandler(function(error) {
+            showNotification('Erreur lors de la vérification: ' + error, true);
+          })
+          .checkDuplicates();
+      }
+
+      function ignoreDuplicate(index) {
+        const row = document.getElementById('duplicatesTableBody').children[index];
+        if (row) {
+          const rowText = row.cells[0].textContent;
+          const lines = rowText.match(/\d+/g);
+          const referenceLine = Math.min(parseInt(lines[0]), parseInt(lines[1]));
+          const lineToMark = Math.max(parseInt(lines[0]), parseInt(lines[1]));
+          
+          google.script.run
+            .withSuccessHandler(function(response) {
+              if (response.success) {
+                row.remove();
+                if (document.getElementById('duplicatesTableBody').children.length === 0) {
+                  document.getElementById('duplicatesContainer').classList.remove('visible');
+                }
+                showNotification(response.message);
+              } else {
+                showNotification(response.message, true);
+              }
+            })
+            .withFailureHandler(function(error) {
+              showNotification('Erreur lors du marquage: ' + error, true);
+            })
+            .markDuplicateAsIgnored(lineToMark, referenceLine);
+        }
+      }
+
+      function deleteDuplicate(index) {
+        const row = document.getElementById('duplicatesTableBody').children[index];
+        if (row) {
+          const rowText = row.cells[0].textContent;
+          const lineToDelete = parseInt(rowText.split('et')[1].trim());
+          
+          if (confirm(`Êtes-vous sûr de vouloir supprimer la ligne ${lineToDelete} ?`)) {
+            google.script.run
+              .withSuccessHandler(function(response) {
+                if (response.success) {
+                  row.remove();
+                  if (document.getElementById('duplicatesTableBody').children.length === 0) {
+                    document.getElementById('duplicatesContainer').classList.remove('visible');
+                  }
+                  showNotification(response.message);
+                  verifyDuplicates();
+                } else {
+                  showNotification(response.message, true);
+                }
+              })
+              .withFailureHandler(function(error) {
+                showNotification('Erreur lors de la suppression: ' + error, true);
+              })
+              .deleteRow(lineToDelete);
+          }
+        }
+      }
+
+      function generateScript() {
+        google.script.run
+          .withSuccessHandler(function() {
+            showNotification('Script PowerShell généré avec succès');
+          })
+          .withFailureHandler(function(error) {
+            showNotification('Erreur lors de la génération du script: ' + error, true);
+          })
+          .downloadPowerShellScript();
+      }
+
+      function loadDraft() {
         google.script.run
           .withSuccessHandler(function(response) {
             if (response.success) {
-              showNotification(response.message);
-              verifyDuplicates();
+              const drafts = response.drafts;
+              
+              // Remplir le premier formulaire avec le premier brouillon
+              const firstDraft = drafts[0];
+              document.getElementById('sourceIp').value = firstDraft.sourceIp === "N/A" ? "" : firstDraft.sourceIp;
+              document.getElementById('destinationIp').value = firstDraft.destinationIp === "N/A" ? "" : firstDraft.destinationIp;
+              document.getElementById('protocol').value = firstDraft.protocol === "N/A" ? "" : firstDraft.protocol.toLowerCase();
+              document.getElementById('service').value = firstDraft.service === "N/A" ? "" : firstDraft.service;
+              document.getElementById('port').value = firstDraft.port === "N/A" ? "" : firstDraft.port;
+              document.getElementById('columnK').value = firstDraft.columnK === "N/A" ? "" : firstDraft.columnK;
+              document.getElementById('columnL').value = firstDraft.columnL === "N/A" ? "" : firstDraft.columnL;
+              document.getElementById('classification').value = firstDraft.classification === "N/A" ? "" : firstDraft.classification;
+              document.getElementById('fourCharCode').value = firstDraft.fourCharCode === "N/A" ? "" : firstDraft.fourCharCode;
+              
+              // Pour chaque brouillon supplémentaire, créer une nouvelle ligne
+              for (let i = 1; i < drafts.length; i++) {
+                const draft = drafts[i];
+                duplicateField('source'); // Crée une nouvelle ligne
+                
+                // Récupérer la dernière ligne créée
+                const ruleLines = document.getElementsByClassName('rule-line');
+                const lastLine = ruleLines[ruleLines.length - 1];
+                
+                // Remplir les champs de la nouvelle ligne
+                lastLine.querySelector('.sourceIp').value = draft.sourceIp === "N/A" ? "" : draft.sourceIp;
+                lastLine.querySelector('.destinationIp').value = draft.destinationIp === "N/A" ? "" : draft.destinationIp;
+                lastLine.querySelector('.protocol').value = draft.protocol === "N/A" ? "" : draft.protocol.toLowerCase();
+                lastLine.querySelector('.service').value = draft.service === "N/A" ? "" : draft.service;
+                lastLine.querySelector('.port').value = draft.port === "N/A" ? "" : draft.port;
+                lastLine.querySelector('.columnK').value = draft.columnK === "N/A" ? "" : draft.columnK;
+                lastLine.querySelector('.columnL').value = draft.columnL === "N/A" ? "" : draft.columnL;
+                lastLine.querySelector('.classification').value = draft.classification === "N/A" ? "" : draft.classification;
+                lastLine.querySelector('.fourCharCode').value = draft.fourCharCode === "N/A" ? "" : draft.fourCharCode;
+              }
+              
+              showNotification(`${drafts.length} brouillon(s) chargé(s)`);
             } else {
               showNotification(response.message, true);
             }
           })
           .withFailureHandler(function(error) {
-            showNotification('Erreur lors du marquage du doublon: ' + error, true);
+            showNotification('Erreur lors du chargement des brouillons: ' + error, true);
           })
-          .markDuplicateAsIgnored(lineNumber, referenceLine);
+          .getDraftData();
       }
+
+      document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('sourceIp').addEventListener('input', function() {
+          validateInput(this, 'ip');
+        });
+        
+        document.getElementById('destinationIp').addEventListener('input', function() {
+          validateInput(this, 'ip');
+        });
+        
+        document.getElementById('port').addEventListener('input', function() {
+          validateInput(this, 'port');
+        });
+      });
     </script>
   </head>
   <body>
     <div class="container">
-      <h1 class="app-title">Network Rules Manager</h1>
+      <h1 class="app-title">Application</h1>
       <div class="rule-line">
         <div class="rule-column">
           <label class="column-label">Source IP</label>

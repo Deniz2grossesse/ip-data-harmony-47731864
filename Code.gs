@@ -1,5 +1,4 @@
 function doGet() {
-  console.log('doGet function called');
   return HtmlService.createTemplateFromFile('index')
     .evaluate()
     .setTitle('Network Rules Manager')
@@ -7,14 +6,11 @@ function doGet() {
 }
 
 function showNetworkRulesUI() {
-  console.log('showNetworkRulesUI function called');
   const html = HtmlService.createTemplateFromFile('index')
     .evaluate()
     .setTitle('Network Rules Manager')
     .setWidth(1000)
     .setHeight(600);
-  console.log('UI template created');
-  return html;
 }
 
 // Cache des validations pour éviter les calculs répétitifs
