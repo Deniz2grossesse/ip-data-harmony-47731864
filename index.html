@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Network Rules Manager</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <?!= include('styles'); ?>
+    <?!= HtmlService.createHtmlOutputFromFile('styles').getContent(); ?>
     <script>
       console.log('Page loading started');
       
@@ -41,11 +41,20 @@
       function duplicateField(type) {
         console.log('Duplicating field of type:', type);
         const container = document.querySelector('.container');
+        if (!container) {
+          console.error('Container not found');
+          return;
+        }
+
+        const ruleLines = document.getElementsByClassName('rule-line');
+        if (ruleLines.length === 0) {
+          console.error('No rule lines found');
+          return;
+        }
+
+        const lastRuleLine = ruleLines[ruleLines.length - 1];
         const newRuleLine = document.createElement('div');
         newRuleLine.className = 'rule-line';
-        
-        const ruleLines = document.getElementsByClassName('rule-line');
-        const lastRuleLine = ruleLines[ruleLines.length - 1];
         
         const sourceIp = lastRuleLine.querySelector('.sourceIp, #sourceIp').value;
         const destinationIp = lastRuleLine.querySelector('.destinationIp, #destinationIp').value;
@@ -152,6 +161,11 @@
       }
 
       function validateInput(input, type) {
+        if (!input) {
+          console.error('Input element not found');
+          return;
+        }
+
         if (type === 'ip') {
           if (!validateIpFormat(input.value) && input.value !== '') {
             input.style.borderColor = 'red';
@@ -194,13 +208,32 @@
 
       function deleteLine(button) {
         console.log('Deleting line');
-        if (button && button.parentElement) {
-          const ruleLine = button.parentElement;
-          const container = document.querySelector('.container');
-          if (container && ruleLine) {
-            container.removeChild(ruleLine);
-          }
+        if (!button) {
+          console.error('Delete button not found');
+          return;
         }
+
+        const ruleLine = button.closest('.rule-line');
+        if (!ruleLine) {
+          console.error('Parent rule line not found');
+          return;
+        }
+
+        const lineNumber = Array.from(ruleLine.parentElement.children).indexOf(ruleLine) + 12;
+        
+        google.script.run
+          .withSuccessHandler(function(response) {
+            if (response.success) {
+              ruleLine.remove();
+              showNotification('Ligne supprimée avec succès');
+            } else {
+              showNotification(response.message, true);
+            }
+          })
+          .withFailureHandler(function(error) {
+            showNotification('Erreur lors de la suppression: ' + error, true);
+          })
+          .deleteRow(lineNumber);
       }
 
       function saveRules() {
@@ -324,8 +357,8 @@
         google.script.run
           .withSuccessHandler(function(response) {
             if (response.success) {
-              // Implement draft loading logic
               showNotification(response.message);
+              // Implement draft loading logic here
             } else {
               showNotification(response.message, true);
             }
@@ -375,24 +408,12 @@
           .checkDuplicates();
       }
 
-      function generateScript() {
-        google.script.run
-          .withSuccessHandler(function(scriptContent) {
-            // Handle the generated script
-            showNotification('Script généré avec succès');
-          })
-          .withFailureHandler(function(error) {
-            showNotification('Erreur lors de la génération du script: ' + error, true);
-          })
-          .generatePowerShellScript();
-      }
-
       function ignoreDuplicate(lineNumber, referenceLine) {
         google.script.run
           .withSuccessHandler(function(response) {
             if (response.success) {
               showNotification(response.message);
-              verifyDuplicates(); // Refresh the duplicates list
+              verifyDuplicates();
             } else {
               showNotification(response.message, true);
             }
@@ -406,7 +427,7 @@
   </head>
   <body>
     <div class="container">
-      <h1 class="app-title">Application</h1>
+      <h1 class="app-title">Network Rules Manager</h1>
       <div class="rule-line">
         <div class="rule-column">
           <label class="column-label">Source IP</label>
