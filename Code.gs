@@ -11,8 +11,6 @@ function showNetworkRulesUI() {
     .setTitle('Network Rules Manager')
     .setWidth(1000)
     .setHeight(600);
-  
-  return html;
 }
 
 // Cache des validations pour éviter les calculs répétitifs
@@ -288,8 +286,4 @@ function downloadPowerShellScript() {
   const scriptContent = generatePowerShellScript();
   const blob = Utilities.newBlob(scriptContent, 'text/plain', 'test_connectivity.ps1');
   return blob;
-}
-
-function include(filename) {
-  return HtmlService.createHtmlOutputFromFile(filename).getContent();
 }
