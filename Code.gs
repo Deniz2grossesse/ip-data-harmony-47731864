@@ -11,6 +11,8 @@ function showNetworkRulesUI() {
     .setTitle('Network Rules Manager')
     .setWidth(1000)
     .setHeight(600);
+  
+  return html; // Ajout du return pour afficher l'UI
 }
 
 // Cache des validations pour éviter les calculs répétitifs
