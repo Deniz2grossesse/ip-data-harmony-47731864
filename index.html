@@ -186,6 +186,15 @@
         }, 3000);
       }
 
+      function deleteLine(button) {
+        console.log('Deleting line');
+        const ruleLine = button.parentElement;
+        const container = document.querySelector('.container');
+        if (container && ruleLine) {
+          container.removeChild(ruleLine);
+        }
+      }
+
       function saveRules() {
         console.log('Attempting to save rules');
         const rules = [];
