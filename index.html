@@ -6,571 +6,197 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Network Rules Manager</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    <?!= include('styles'); ?>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        padding: 20px;
+        background: linear-gradient(109.6deg, rgba(223,234,247,1) 11.2%, rgba(244,248,252,1) 91.1%);
+        min-height: 100vh;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 2rem;
+        border-radius: 16px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        backdrop-filter: blur(10px);
+      }
+
+      .app-title {
+        text-align: center;
+        color: #1a365d;
+        margin-bottom: 2rem;
+        font-size: 2rem;
+      }
+
+      .rule-line {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        flex-wrap: wrap;
+        align-items: flex-start;
+      }
+
+      .rule-column {
+        flex: 1;
+        min-width: 200px;
+      }
+
+      .column-label {
+        display: block;
+        font-size: 0.875rem;
+        color: #4a5568;
+        margin-bottom: 0.5rem;
+      }
+
+      .input-field {
+        width: 100%;
+        padding: 0.5rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 0.375rem;
+        font-size: 0.875rem;
+      }
+
+      .input-field:focus {
+        outline: none;
+        border-color: #4299e1;
+        box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.5);
+      }
+
+      .add-button {
+        background-color: #4299e1;
+        color: white;
+        border: none;
+        border-radius: 0.375rem;
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+      }
+
+      .add-button:hover {
+        background-color: #3182ce;
+      }
+
+      .delete-button {
+        background-color: #e53e3e;
+        color: white;
+        border: none;
+        border-radius: 0.375rem;
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        font-size: 0.875rem;
+        margin-top: 2rem;
+      }
+
+      .delete-button:hover {
+        background-color: #c53030;
+      }
+
+      .save-button {
+        background-color: #48bb78;
+        color: white;
+        border: none;
+        border-radius: 0.375rem;
+        padding: 0.75rem 1.5rem;
+        cursor: pointer;
+        font-size: 1rem;
+        transition: background-color 0.2s;
+      }
+
+      .save-button:hover {
+        background-color: #38a169;
+      }
+
+      .notification {
+        position: fixed;
+        bottom: 1rem;
+        right: 1rem;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        background-color: #48bb78;
+        color: white;
+        transition: opacity 0.3s;
+        opacity: 1;
+      }
+
+      .notification.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .notification.error {
+        background-color: #e53e3e;
+      }
+
+      .duplicates-container {
+        margin-top: 2rem;
+        display: none;
+      }
+
+      .duplicates-container.visible {
+        display: block;
+      }
+
+      .duplicates-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+      }
+
+      .duplicates-table th,
+      .duplicates-table td {
+        padding: 0.75rem;
+        text-align: left;
+        border-bottom: 1px solid #e2e8f0;
+      }
+
+      .duplicates-table th {
+        background-color: #f7fafc;
+        font-weight: 600;
+        color: #4a5568;
+      }
+
+      .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+      }
+
+      .ignore-button {
+        background-color: #718096;
+        color: white;
+        border: none;
+        border-radius: 0.375rem;
+        padding: 0.25rem 0.5rem;
+        cursor: pointer;
+        font-size: 0.75rem;
+      }
+
+      .ignore-button:hover {
+        background-color: #4a5568;
+      }
+
+      @media (max-width: 768px) {
+        .rule-line {
+          flex-direction: column;
+        }
+
+        .rule-column {
+          width: 100%;
+        }
+      }
+    </style>
   </head>
   <body>
-    <div class="container">
-      <h1 class="app-title">Network Rules Manager</h1>
-      <div class="rule-line">
-        <div class="rule-column">
-          <label class="column-label">Source IP</label>
-          <input type="text" id="sourceIp" placeholder="IP source" class="input-field" oninput="validateInput(this, 'ip')">
-          <button onclick="duplicateField('source')" class="add-button">+</button>
-        </div>
-        <div class="rule-column">
-          <label class="column-label">IP Destination</label>
-          <input type="text" id="destinationIp" placeholder="IP destination" class="input-field" oninput="validateInput(this, 'ip')">
-          <button onclick="duplicateField('destination')" class="add-button">+</button>
-        </div>
-        <div class="rule-column">
-          <label class="column-label">Protocole</label>
-          <select id="protocol" class="input-field">
-            <option value="">Select</option>
-            <option value="tcp">TCP</option>
-            <option value="udp">UDP</option>
-            <option value="icmp">ICMP</option>
-          </select>
-          <button onclick="duplicateField('protocol')" class="add-button">+</button>
-        </div>
-        <div class="rule-column">
-          <label class="column-label">Service</label>
-          <input type="text" id="service" placeholder="Service" class="input-field">
-          <button onclick="duplicateField('service')" class="add-button">+</button>
-        </div>
-        <div class="rule-column">
-          <label class="column-label">Port</label>
-          <input type="text" id="port" placeholder="Port" class="input-field" oninput="validateInput(this, 'port')">
-          <button onclick="duplicateField('port')" class="add-button">+</button>
-        </div>
-        <div class="rule-column">
-          <label class="column-label">Authentication</label>
-          <select id="columnK" class="input-field">
-            <option value="">Select</option>
-            <option value="YES">YES</option>
-            <option value="NO">NO</option>
-          </select>
-          <button onclick="duplicateField('columnK')" class="add-button">+</button>
-        </div>
-        <div class="rule-column">
-          <label class="column-label">Flow encryption</label>
-          <select id="columnL" class="input-field">
-            <option value="">Select</option>
-            <option value="YES">YES</option>
-            <option value="NO">NO</option>
-          </select>
-          <button onclick="duplicateField('columnL')" class="add-button">+</button>
-        </div>
-        <div class="rule-column">
-          <label class="column-label">Classification</label>
-          <select id="classification" class="input-field">
-            <option value="">Select</option>
-            <option value="Amber">Amber</option>
-            <option value="More senssitive data">More senssitive data</option>
-          </select>
-          <button onclick="duplicateField('classification')" class="add-button">+</button>
-        </div>
-        <div class="rule-column">
-          <label class="column-label">APP code</label>
-          <input type="text" id="fourCharCode" placeholder="Code (4 chars)" class="input-field" oninput="validateInput(this, 'fourChar')" maxlength="4">
-          <button onclick="duplicateField('fourCharCode')" class="add-button">+</button>
-        </div>
-        <button onclick="deleteLine(this)" class="delete-button">Supprimer</button>
-      </div>
-      <div style="display: flex; gap: 16px; justify-content: center; margin-top: 20px;">
-        <button onclick="loadDraft()" class="save-button" style="background-color: #6366f1;">Reprendre le brouillon</button>
-        <button onclick="verifyDuplicates()" class="save-button" style="background-color: #4f46e5;">Vérifier</button>
-        <button onclick="saveRules()" class="save-button">Valider</button>
-        <button onclick="generateScript()" class="save-button" style="background-color: #059669;">Générer Script</button>
-      </div>
-
-      <div id="duplicatesContainer" class="duplicates-container">
-        <table class="duplicates-table">
-          <thead>
-            <tr>
-              <th>Lignes</th>
-              <th>IP Source</th>
-              <th>IP Destination</th>
-              <th>Protocole</th>
-              <th>Port</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="duplicatesTableBody">
-          </tbody>
-        </table>
-      </div>
-    </div>
-    
-    <div id="notification" class="notification hidden"></div>
-
-    <script>
-      function validateIpFormat(ip) {
-        const regex = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/;
-        if (!regex.test(ip)) return false;
-        
-        const parts = ip.split('.');
-        return parts.every(part => {
-          const num = parseInt(part);
-          return num >= 0 && num <= 255;
-        });
-      }
-
-      function validatePort(port) {
-        const portNum = parseInt(port);
-        return portNum >= 1 && portNum <= 65000;
-      }
-
-      function validateFourCharField(value) {
-        return value.length === 4;
-      }
-
-      function duplicateField(type) {
-        const container = document.querySelector('.container');
-        const newRuleLine = document.createElement('div');
-        newRuleLine.className = 'rule-line';
-        
-        const ruleLines = document.getElementsByClassName('rule-line');
-        const lastRuleLine = ruleLines[ruleLines.length - 1];
-        
-        const sourceIp = lastRuleLine.querySelector('.sourceIp, #sourceIp').value;
-        const destinationIp = lastRuleLine.querySelector('.destinationIp, #destinationIp').value;
-        const protocol = lastRuleLine.querySelector('.protocol, #protocol').value;
-        const service = lastRuleLine.querySelector('.service, #service').value;
-        const port = lastRuleLine.querySelector('.port, #port').value;
-        const columnK = lastRuleLine.querySelector('.columnK, #columnK').value;
-        const columnL = lastRuleLine.querySelector('.columnL, #columnL').value;
-        const classification = lastRuleLine.querySelector('.classification, #classification').value;
-        const fourCharCode = lastRuleLine.querySelector('.fourCharCode, #fourCharCode').value;
-
-        newRuleLine.innerHTML = `
-          <div class="rule-column">
-            <label class="column-label">Source IP</label>
-            <input type="text" class="input-field sourceIp" placeholder="IP source" value="${type === 'source' ? '' : sourceIp}" oninput="validateInput(this, 'ip')">
-            <button onclick="duplicateField('source')" class="add-button">+</button>
-          </div>
-          <div class="rule-column">
-            <label class="column-label">IP Destination</label>
-            <input type="text" class="input-field destinationIp" placeholder="IP destination" value="${type === 'destination' ? '' : destinationIp}" oninput="validateInput(this, 'ip')">
-            <button onclick="duplicateField('destination')" class="add-button">+</button>
-          </div>
-          <div class="rule-column">
-            <label class="column-label">Protocole</label>
-            <select class="input-field protocol">
-              <option value="">Select</option>
-              <option value="tcp" ${protocol === 'tcp' ? 'selected' : ''}>TCP</option>
-              <option value="udp" ${protocol === 'udp' ? 'selected' : ''}>UDP</option>
-              <option value="icmp" ${protocol === 'icmp' ? 'selected' : ''}>ICMP</option>
-            </select>
-            <button onclick="duplicateField('protocol')" class="add-button">+</button>
-          </div>
-          <div class="rule-column">
-            <label class="column-label">Service</label>
-            <input type="text" class="input-field service" placeholder="Service" value="${type === 'service' ? '' : service}">
-            <button onclick="duplicateField('service')" class="add-button">+</button>
-          </div>
-          <div class="rule-column">
-            <label class="column-label">Port</label>
-            <input type="text" class="input-field port" placeholder="Port" value="${type === 'port' ? '' : port}" oninput="validateInput(this, 'port')">
-            <button onclick="duplicateField('port')" class="add-button">+</button>
-          </div>
-          <div class="rule-column">
-            <label class="column-label">Authentication</label>
-            <select class="input-field columnK">
-              <option value="">Select</option>
-              <option value="YES" ${columnK === 'YES' ? 'selected' : ''}>YES</option>
-              <option value="NO" ${columnK === 'NO' ? 'selected' : ''}>NO</option>
-            </select>
-            <button onclick="duplicateField('columnK')" class="add-button">+</button>
-          </div>
-          <div class="rule-column">
-            <label class="column-label">Flow encryption</label>
-            <select class="input-field columnL">
-              <option value="">Select</option>
-              <option value="YES" ${columnL === 'YES' ? 'selected' : ''}>YES</option>
-              <option value="NO" ${columnL === 'NO' ? 'selected' : ''}>NO</option>
-            </select>
-            <button onclick="duplicateField('columnL')" class="add-button">+</button>
-          </div>
-          <div class="rule-column">
-            <label class="column-label">Classification</label>
-            <select class="input-field classification">
-              <option value="">Select</option>
-              <option value="Amber" ${classification === 'Amber' ? 'selected' : ''}>Amber</option>
-              <option value="More senssitive data" ${classification === 'More senssitive data' ? 'selected' : ''}>More senssitive data</option>
-            </select>
-            <button onclick="duplicateField('classification')" class="add-button">+</button>
-          </div>
-          <div class="rule-column">
-            <label class="column-label">APP code</label>
-            <input type="text" class="input-field fourCharCode" placeholder="Code (4 chars)" value="${type === 'fourCharCode' ? '' : fourCharCode}" oninput="validateInput(this, 'fourChar')" maxlength="4">
-            <button onclick="duplicateField('fourCharCode')" class="add-button">+</button>
-          </div>
-          <button onclick="deleteLine(this)" class="delete-button">Supprimer</button>
-        `;
-
-        const saveButton = document.querySelector('.save-button');
-        container.insertBefore(newRuleLine, saveButton.parentElement);
-
-        if (type === 'source') {
-          newRuleLine.querySelector('.sourceIp').focus();
-        } else if (type === 'destination') {
-          newRuleLine.querySelector('.destinationIp').focus();
-        } else if (type === 'protocol') {
-          newRuleLine.querySelector('.protocol').focus();
-        } else if (type === 'service') {
-          newRuleLine.querySelector('.service').focus();
-        } else if (type === 'port') {
-          newRuleLine.querySelector('.port').focus();
-        } else if (type === 'columnK') {
-          newRuleLine.querySelector('.columnK').focus();
-        } else if (type === 'columnL') {
-          newRuleLine.querySelector('.columnL').focus();
-        } else if (type === 'classification') {
-          newRuleLine.querySelector('.classification').focus();
-        } else if (type === 'fourCharCode') {
-          newRuleLine.querySelector('.fourCharCode').focus();
-        }
-      }
-
-      function validateInput(input, type) {
-        if (type === 'ip') {
-          if (!validateIpFormat(input.value) && input.value !== '') {
-            input.style.borderColor = 'red';
-            showNotification('Veuillez saisir une adresse IP valide (format: 0-255.0-255.0-255.0-255)', true);
-          } else {
-            input.style.borderColor = '#e2e8f0';
-          }
-        } else if (type === 'port') {
-          const value = input.value.replace(/[^0-9]/g, '');
-          input.value = value;
-          
-          if (!validatePort(value) && value !== '') {
-            input.style.borderColor = 'red';
-            showNotification('Le port doit être compris entre 1 et 65000', true);
-          } else {
-            input.style.borderColor = '#e2e8f0';
-          }
-        } else if (type === 'fourChar') {
-          if (!validateFourCharField(input.value) && input.value !== '') {
-            input.style.borderColor = 'red';
-            showNotification('Le code doit contenir exactement 4 caractères', true);
-          } else {
-            input.style.borderColor = '#e2e8f0';
-          }
-        }
-      }
-
-      function showNotification(message, isError = false) {
-        const notification = document.getElementById('notification');
-        notification.textContent = message;
-        notification.classList.remove('hidden');
-        notification.classList.toggle('error', isError);
-        
-        setTimeout(() => {
-          notification.classList.add('hidden');
-        }, 3000);
-      }
-
-      function saveRules() {
-        const rules = [];
-        const ruleLines = document.querySelectorAll('.rule-line');
-        let hasValidationError = false;
-        
-        ruleLines.forEach((line, index) => {
-          const sourceIp = line.querySelector('.sourceIp, #sourceIp').value;
-          const destinationIp = line.querySelector('.destinationIp, #destinationIp').value;
-          const protocol = line.querySelector('.protocol, #protocol').value;
-          const service = line.querySelector('.service, #service').value;
-          const port = line.querySelector('.port, #port').value;
-          const columnK = line.querySelector('.columnK, #columnK').value;
-          const columnL = line.querySelector('.columnL, #columnL').value;
-          const classification = line.querySelector('.classification, #classification').value;
-          const fourCharCode = line.querySelector('.fourCharCode, #fourCharCode').value;
-          
-          // Vérification des champs obligatoires
-          if (!sourceIp) {
-            showNotification(`Valeur non saisie pour IP source en ligne ${index + 1}`, true);
-            hasValidationError = true;
-            return;
-          }
-          if (!destinationIp) {
-            showNotification(`Valeur non saisie pour IP destination en ligne ${index + 1}`, true);
-            hasValidationError = true;
-            return;
-          }
-          if (!protocol) {
-            showNotification(`Protocole non saisi en ligne ${index + 1}`, true);
-            hasValidationError = true;
-            return;
-          }
-          if (!service) {
-            showNotification(`Service non saisi en ligne ${index + 1}`, true);
-            hasValidationError = true;
-            return;
-          }
-          if (!port) {
-            showNotification(`Port non saisi en ligne ${index + 1}`, true);
-            hasValidationError = true;
-            return;
-          }
-          if (!columnK) {
-            showNotification(`Authentication non saisie en ligne ${index + 1}`, true);
-            hasValidationError = true;
-            return;
-          }
-          if (!columnL) {
-            showNotification(`Flow encryption non saisi en ligne ${index + 1}`, true);
-            hasValidationError = true;
-            return;
-          }
-          if (!classification) {
-            showNotification(`Classification non saisie en ligne ${index + 1}`, true);
-            hasValidationError = true;
-            return;
-          }
-          if (!fourCharCode) {
-            showNotification(`APP code non saisi en ligne ${index + 1}`, true);
-            hasValidationError = true;
-            return;
-          }
-
-          // Validation des formats
-          if (!validateIpFormat(sourceIp)) {
-            showNotification(`IP source invalide en ligne ${index + 1}: ${sourceIp}`, true);
-            hasValidationError = true;
-            return;
-          }
-          if (!validateIpFormat(destinationIp)) {
-            showNotification(`IP destination invalide en ligne ${index + 1}: ${destinationIp}`, true);
-            hasValidationError = true;
-            return;
-          }
-          if (!validatePort(port)) {
-            showNotification(`Port invalide en ligne ${index + 1}: ${port}`, true);
-            hasValidationError = true;
-            return;
-          }
-          if (!validateFourCharField(fourCharCode)) {
-            showNotification(`Le code doit contenir exactement 4 caractères en ligne ${index + 1}`, true);
-            hasValidationError = true;
-            return;
-          }
-
-          rules.push({
-            sourceIp,
-            destinationIp,
-            protocol,
-            service,
-            port,
-            columnK,
-            columnL,
-            classification,
-            fourCharCode
-          });
-        });
-        
-        if (hasValidationError) {
-          return;
-        }
-        
-        if (rules.length === 0) {
-          showNotification('Aucune donnée valide à sauvegarder', true);
-          return;
-        }
-        
-        // Vérification des doublons avant la sauvegarde
-        google.script.run
-          .withSuccessHandler(function(duplicateResponse) {
-            if (duplicateResponse.success) {
-              // Si pas de doublons, on sauvegarde
-              google.script.run
-                .withSuccessHandler(function(response) {
-                  showNotification(response.message, !response.success);
-                  if (response.success) {
-                    verifyDuplicates(); // Rafraîchir la liste des doublons après la sauvegarde
-                  }
-                })
-                .withFailureHandler(function(error) {
-                  showNotification('Erreur lors de la sauvegarde: ' + error, true);
-                })
-                .saveData(rules);
-            } else {
-              showNotification('Des doublons ont été détectés. Veuillez les vérifier avant de sauvegarder.', true);
-              verifyDuplicates();
-            }
-          })
-          .withFailureHandler(function(error) {
-            showNotification('Erreur lors de la vérification des doublons: ' + error, true);
-          })
-          .checkDuplicates();
-      }
-
-      function verifyDuplicates() {
-        google.script.run
-          .withSuccessHandler(function(response) {
-            const duplicatesContainer = document.getElementById('duplicatesContainer');
-            const duplicatesTableBody = document.getElementById('duplicatesTableBody');
-            
-            if (!response.success && response.duplicates && response.duplicates.length > 0) {
-              duplicatesTableBody.innerHTML = '';
-              response.duplicates.forEach((duplicate, index) => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                  <td>Doublons entre ligne ${duplicate.line1} et ${duplicate.line2}</td>
-                  <td>${duplicate.data.sourceIp}</td>
-                  <td>${duplicate.data.destinationIp}</td>
-                  <td>${duplicate.data.protocol}</td>
-                  <td>${duplicate.data.port}</td>
-                  <td>
-                    <div class="action-buttons">
-                      <button onclick="ignoreDuplicate(${index})" class="ignore-button">Ignorer</button>
-                      <button onclick="deleteDuplicate(${index})" class="delete-button">Supprimer</button>
-                    </div>
-                  </td>
-                `;
-                duplicatesTableBody.appendChild(row);
-              });
-              duplicatesContainer.classList.add('visible');
-            } else {
-              duplicatesContainer.classList.remove('visible');
-            }
-            showNotification(response.message, !response.success);
-          })
-          .withFailureHandler(function(error) {
-            showNotification('Erreur lors de la vérification: ' + error, true);
-          })
-          .checkDuplicates();
-      }
-
-      function ignoreDuplicate(index) {
-        const row = document.getElementById('duplicatesTableBody').children[index];
-        if (row) {
-          const rowText = row.cells[0].textContent;
-          const lines = rowText.match(/\d+/g);
-          const referenceLine = Math.min(parseInt(lines[0]), parseInt(lines[1]));
-          const lineToMark = Math.max(parseInt(lines[0]), parseInt(lines[1]));
-          
-          google.script.run
-            .withSuccessHandler(function(response) {
-              if (response.success) {
-                row.remove();
-                if (document.getElementById('duplicatesTableBody').children.length === 0) {
-                  document.getElementById('duplicatesContainer').classList.remove('visible');
-                }
-                showNotification(response.message);
-              } else {
-                showNotification(response.message, true);
-              }
-            })
-            .withFailureHandler(function(error) {
-              showNotification('Erreur lors du marquage: ' + error, true);
-            })
-            .markDuplicateAsIgnored(lineToMark, referenceLine);
-        }
-      }
-
-      function deleteDuplicate(index) {
-        const row = document.getElementById('duplicatesTableBody').children[index];
-        if (row) {
-          const rowText = row.cells[0].textContent;
-          const lineToDelete = parseInt(rowText.split('et')[1].trim());
-          
-          if (confirm(`Êtes-vous sûr de vouloir supprimer la ligne ${lineToDelete} ?`)) {
-            google.script.run
-              .withSuccessHandler(function(response) {
-                if (response.success) {
-                  row.remove();
-                  if (document.getElementById('duplicatesTableBody').children.length === 0) {
-                    document.getElementById('duplicatesContainer').classList.remove('visible');
-                  }
-                  showNotification(response.message);
-                  verifyDuplicates();
-                } else {
-                  showNotification(response.message, true);
-                }
-              })
-              .withFailureHandler(function(error) {
-                showNotification('Erreur lors de la suppression: ' + error, true);
-              })
-              .deleteRow(lineToDelete);
-          }
-        }
-      }
-
-      function generateScript() {
-        google.script.run
-          .withSuccessHandler(function() {
-            showNotification('Script PowerShell généré avec succès');
-          })
-          .withFailureHandler(function(error) {
-            showNotification('Erreur lors de la génération du script: ' + error, true);
-          })
-          .downloadPowerShellScript();
-      }
-
-      function loadDraft() {
-        google.script.run
-          .withSuccessHandler(function(response) {
-            if (response.success) {
-              const drafts = response.drafts;
-              
-              // Remplir le premier formulaire avec le premier brouillon
-              const firstDraft = drafts[0];
-              document.getElementById('sourceIp').value = firstDraft.sourceIp === "N/A" ? "" : firstDraft.sourceIp;
-              document.getElementById('destinationIp').value = firstDraft.destinationIp === "N/A" ? "" : firstDraft.destinationIp;
-              document.getElementById('protocol').value = firstDraft.protocol === "N/A" ? "" : firstDraft.protocol.toLowerCase();
-              document.getElementById('service').value = firstDraft.service === "N/A" ? "" : firstDraft.service;
-              document.getElementById('port').value = firstDraft.port === "N/A" ? "" : firstDraft.port;
-              document.getElementById('columnK').value = firstDraft.columnK === "N/A" ? "" : firstDraft.columnK;
-              document.getElementById('columnL').value = firstDraft.columnL === "N/A" ? "" : firstDraft.columnL;
-              document.getElementById('classification').value = firstDraft.classification === "N/A" ? "" : firstDraft.classification;
-              document.getElementById('fourCharCode').value = firstDraft.fourCharCode === "N/A" ? "" : firstDraft.fourCharCode;
-              
-              // Pour chaque brouillon supplémentaire, créer une nouvelle ligne
-              for (let i = 1; i < drafts.length; i++) {
-                const draft = drafts[i];
-                duplicateField('source'); // Crée une nouvelle ligne
-                
-                // Récupérer la dernière ligne créée
-                const ruleLines = document.getElementsByClassName('rule-line');
-                const lastLine = ruleLines[ruleLines.length - 1];
-                
-                // Remplir les champs de la nouvelle ligne
-                lastLine.querySelector('.sourceIp').value = draft.sourceIp === "N/A" ? "" : draft.sourceIp;
-                lastLine.querySelector('.destinationIp').value = draft.destinationIp === "N/A" ? "" : draft.destinationIp;
-                lastLine.querySelector('.protocol').value = draft.protocol === "N/A" ? "" : draft.protocol.toLowerCase();
-                lastLine.querySelector('.service').value = draft.service === "N/A" ? "" : draft.service;
-                lastLine.querySelector('.port').value = draft.port === "N/A" ? "" : draft.port;
-                lastLine.querySelector('.columnK').value = draft.columnK === "N/A" ? "" : draft.columnK;
-                lastLine.querySelector('.columnL').value = draft.columnL === "N/A" ? "" : draft.columnL;
-                lastLine.querySelector('.classification').value = draft.classification === "N/A" ? "" : draft.classification;
-                lastLine.querySelector('.fourCharCode').value = draft.fourCharCode === "N/A" ? "" : draft.fourCharCode;
-              }
-              
-              showNotification(`${drafts.length} brouillon(s) chargé(s)`);
-            } else {
-              showNotification(response.message, true);
-            }
-          })
-          .withFailureHandler(function(error) {
-            showNotification('Erreur lors du chargement des brouillons: ' + error, true);
-          })
-          .getDraftData();
-      }
-
-      document.addEventListener('DOMContentLoaded', function() {
-        document.getElementById('sourceIp').addEventListener('input', function() {
-          validateInput(this, 'ip');
-        });
-        
-        document.getElementById('destinationIp').addEventListener('input', function() {
-          validateInput(this, 'ip');
-        });
-        
-        document.getElementById('port').addEventListener('input', function() {
-          validateInput(this, 'port');
-        });
-      });
-    </script>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
