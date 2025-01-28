@@ -249,13 +249,11 @@
         const urlInput = document.getElementById('sheetUrl');
         currentSheetUrl = urlInput.value;
         
-        // Vérifier si l'URL est valide
         if (!currentSheetUrl.includes('docs.google.com/spreadsheets')) {
           showNotification('URL invalide. Veuillez entrer une URL Google Sheets valide.', true);
           return;
         }
         
-        // Tester l'accès au fichier
         google.script.run
           .withSuccessHandler(function() {
             showNotification('URL du fichier mise à jour avec succès');
@@ -437,7 +435,6 @@
         const rules = [];
         const ruleLines = document.querySelectorAll('.rule-line');
         let hasValidationError = false;
-        const sheetUrl = document.getElementById('sheetUrl').value;
         
         ruleLines.forEach((line, index) => {
           const sourceIp = line.querySelector('.sourceIp, #sourceIp').value;
@@ -450,7 +447,6 @@
           const classification = line.querySelector('.classification, #classification').value;
           const fourCharCode = line.querySelector('.fourCharCode, #fourCharCode').value;
           
-          // Vérification des champs obligatoires
           if (!sourceIp) {
             showNotification(`Valeur non saisie pour IP source en ligne ${index + 1}`, true);
             hasValidationError = true;
@@ -497,7 +493,6 @@
             return;
           }
 
-          // Validation des formats
           if (!validateIpFormat(sourceIp)) {
             showNotification(`IP source invalide en ligne ${index + 1}: ${sourceIp}`, true);
             hasValidationError = true;
@@ -541,22 +536,20 @@
           return;
         }
         
-        // Vérification des doublons avant la sauvegarde
         google.script.run
           .withSuccessHandler(function(duplicateResponse) {
             if (duplicateResponse.success) {
-              // Si pas de doublons, on sauvegarde
               google.script.run
                 .withSuccessHandler(function(response) {
                   showNotification(response.message, !response.success);
                   if (response.success) {
-                    verifyDuplicates(); // Rafraîchir la liste des doublons après la sauvegarde
+                    verifyDuplicates();
                   }
                 })
                 .withFailureHandler(function(error) {
                   showNotification('Erreur lors de la sauvegarde: ' + error, true);
                 })
-                .saveData(rules, sheetUrl);
+                .saveData(rules, currentSheetUrl);
             } else {
               showNotification('Des doublons ont été détectés. Veuillez les vérifier avant de sauvegarder.', true);
               verifyDuplicates();
@@ -565,7 +558,7 @@
           .withFailureHandler(function(error) {
             showNotification('Erreur lors de la vérification des doublons: ' + error, true);
           })
-          .checkDuplicates();
+          .checkDuplicates(currentSheetUrl);
       }
 
       function verifyDuplicates() {
@@ -602,7 +595,7 @@
           .withFailureHandler(function(error) {
             showNotification('Erreur lors de la vérification: ' + error, true);
           })
-          .checkDuplicates();
+          .checkDuplicates(currentSheetUrl);
       }
 
       function ignoreDuplicate(index) {
@@ -628,7 +621,7 @@
             .withFailureHandler(function(error) {
               showNotification('Erreur lors du marquage: ' + error, true);
             })
-            .markDuplicateAsIgnored(lineToMark, referenceLine);
+            .markDuplicateAsIgnored(lineToMark, referenceLine, currentSheetUrl);
         }
       }
 
@@ -655,7 +648,7 @@
               .withFailureHandler(function(error) {
                 showNotification('Erreur lors de la suppression: ' + error, true);
               })
-              .deleteRow(lineToDelete);
+              .deleteRow(lineToDelete, currentSheetUrl);
           }
         }
       }
@@ -668,7 +661,7 @@
           .withFailureHandler(function(error) {
             showNotification('Erreur lors de la génération du script: ' + error, true);
           })
-          .downloadPowerShellScript();
+          .downloadPowerShellScript(currentSheetUrl);
       }
 
       function loadDraft() {
@@ -681,7 +674,6 @@
                 return;
               }
               
-              // Remplir le premier formulaire avec le premier brouillon
               const firstDraft = drafts[0];
               document.getElementById('sourceIp').value = firstDraft.sourceIp === "N/A" ? "" : firstDraft.sourceIp;
               document.getElementById('destinationIp').value = firstDraft.destinationIp === "N/A" ? "" : firstDraft.destinationIp;
@@ -693,7 +685,6 @@
               document.getElementById('classification').value = firstDraft.classification === "N/A" ? "" : firstDraft.classification;
               document.getElementById('fourCharCode').value = firstDraft.fourCharCode === "N/A" ? "" : firstDraft.fourCharCode;
               
-              // Pour chaque brouillon supplémentaire, créer une nouvelle ligne
               for (let i = 1; i < drafts.length; i++) {
                 const draft = drafts[i];
                 duplicateField('source');
@@ -720,7 +711,7 @@
           .withFailureHandler(function(error) {
             showNotification('Erreur lors du chargement des brouillons: ' + error, true);
           })
-          .getDraftData();
+          .getDraftData(currentSheetUrl);
       }
 
       document.addEventListener('DOMContentLoaded', function() {

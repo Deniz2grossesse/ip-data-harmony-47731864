@@ -75,24 +75,32 @@ function getSheetData(sheetUrl) {
   return sheetDataCache;
 }
 
-function getDraftData() {
+function getDraftData(sheetUrl) {
   try {
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    let sheet;
+    if (sheetUrl) {
+      try {
+        const spreadsheet = SpreadsheetApp.openByUrl(sheetUrl);
+        sheet = spreadsheet.getActiveSheet();
+      } catch (error) {
+        return { success: false, message: "Impossible d'ouvrir le fichier. Vérifiez l'URL et les permissions." };
+      }
+    } else {
+      sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    }
+    
     const data = sheet.getRange(12, 4, 200, 12).getValues();
     const drafts = [];
     
-    // Parcourir les lignes pour trouver les lignes incomplètes
     for (let i = 0; i < data.length; i++) {
       const row = data[i];
       const [sourceIp, , , destIp, protocol, service, port, columnK, columnL, classification, fourCharCode] = row;
       
-      // Vérifier si la ligne est incomplète (au moins un champ obligatoire manquant)
       const isIncomplete = !sourceIp || !destIp || !protocol || !service || !port || 
                           !columnK || !columnL || !classification || !fourCharCode ||
                           !validateIpFormat(sourceIp) || !validateIpFormat(destIp) ||
                           !validatePort(port) || !validateFourCharField(fourCharCode);
       
-      // Si la ligne est incomplète et au moins un champ est rempli
       if (isIncomplete && (sourceIp || destIp || protocol || service || port || columnK || columnL || classification || fourCharCode)) {
         drafts.push({
           lineNumber: i + 12,
@@ -119,19 +127,15 @@ function getDraftData() {
   }
 }
 
-function checkDuplicates() {
-  const data = getSheetData();
+function checkDuplicates(sheetUrl) {
+  const data = getSheetData(sheetUrl);
   const duplicates = [];
   const validRows = new Set();
-  
-  // Créer un index des lignes valides et un map pour la recherche rapide
   const rowMap = new Map();
   
   data.forEach((row, index) => {
-    // Vérifier si la ligne est valide (a une IP source et n'est pas marquée comme ignorée)
-    if (row[0] && !row[11]) { // Modification ici pour vérifier correctement les colonnes
+    if (row[0] && !row[11]) {
       validRows.add(index);
-      // Créer une clé unique pour chaque combinaison
       const key = `${row[0]}_${row[3]}_${row[4]}_${row[6]}`;
       if (rowMap.has(key)) {
         duplicates.push({
@@ -174,7 +178,6 @@ function saveData(data, sheetUrl) {
     const values = getSheetData(sheetUrl);
     let nextRow = 12;
     
-    // Recherche optimisée de la prochaine ligne vide
     for (let i = 0; i < values.length; i++) {
       if (!values[i][0]) {
         nextRow = i + 12;
@@ -186,7 +189,6 @@ function saveData(data, sheetUrl) {
       return { success: false, message: "Impossible d'écrire après la ligne 211" };
     }
     
-    // Préparation des données en mémoire
     const newValues = data.map(row => [
       row.sourceIp,
       '',
@@ -202,10 +204,8 @@ function saveData(data, sheetUrl) {
       ''
     ]);
     
-    // Écriture en une seule opération
     if (newValues.length > 0) {
       sheet.getRange(nextRow, 4, newValues.length, newValues[0].length).setValues(newValues);
-      // Mise à jour du cache
       sheetDataCache = null;
     }
     
@@ -215,11 +215,21 @@ function saveData(data, sheetUrl) {
   }
 }
 
-function deleteRow(rowNumber) {
+function deleteRow(rowNumber, sheetUrl) {
   try {
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    let sheet;
+    if (sheetUrl) {
+      try {
+        const spreadsheet = SpreadsheetApp.openByUrl(sheetUrl);
+        sheet = spreadsheet.getActiveSheet();
+      } catch (error) {
+        return { success: false, message: "Impossible d'ouvrir le fichier. Vérifiez l'URL et les permissions." };
+      }
+    } else {
+      sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    }
+    
     sheet.deleteRow(rowNumber);
-    // Invalider le cache après la suppression
     sheetDataCache = null;
     return { success: true, message: "Ligne supprimée avec succès" };
   } catch (error) {
@@ -227,11 +237,21 @@ function deleteRow(rowNumber) {
   }
 }
 
-function markDuplicateAsIgnored(lineNumber, referenceLine) {
+function markDuplicateAsIgnored(lineNumber, referenceLine, sheetUrl) {
   try {
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    let sheet;
+    if (sheetUrl) {
+      try {
+        const spreadsheet = SpreadsheetApp.openByUrl(sheetUrl);
+        sheet = spreadsheet.getActiveSheet();
+      } catch (error) {
+        return { success: false, message: "Impossible d'ouvrir le fichier. Vérifiez l'URL et les permissions." };
+      }
+    } else {
+      sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    }
+    
     sheet.getRange(lineNumber, 15).setValue(`Doublon avec la ligne ${referenceLine} - ignoré`);
-    // Invalider le cache après la modification
     sheetDataCache = null;
     return { success: true, message: "Doublon marqué comme ignoré" };
   } catch (error) {
@@ -239,19 +259,29 @@ function markDuplicateAsIgnored(lineNumber, referenceLine) {
   }
 }
 
-function generatePowerShellScript() {
-  const data = getSheetData();
+function generatePowerShellScript(sheetUrl) {
+  const data = getSheetData(sheetUrl);
   let scriptContent = "# Script de test de connectivité réseau\n\n";
-  const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
-  let scriptSheet = spreadsheet.getSheetByName('Scripts');
   
-  // Créer la feuille si elle n'existe pas
+  let sheet;
+  if (sheetUrl) {
+    try {
+      const spreadsheet = SpreadsheetApp.openByUrl(sheetUrl);
+      sheet = spreadsheet.getActiveSheet();
+    } catch (error) {
+      throw new Error("Impossible d'ouvrir le fichier. Vérifiez l'URL et les permissions.");
+    }
+  } else {
+    sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  }
+  
+  let scriptSheet = sheet.getParent().getSheetByName('Scripts');
+  
   if (!scriptSheet) {
-    scriptSheet = spreadsheet.insertSheet('Scripts');
+    scriptSheet = sheet.getParent().insertSheet('Scripts');
     scriptSheet.getRange('A1').setValue('Ligne');
     scriptSheet.getRange('B1').setValue('Script');
   } else {
-    // Effacer le contenu existant sauf les en-têtes
     const lastRow = scriptSheet.getLastRow();
     if (lastRow > 1) {
       scriptSheet.getRange(2, 1, lastRow - 1, 2).clearContent();
@@ -306,8 +336,8 @@ function generatePowerShellScript() {
   return scriptContent;
 }
 
-function downloadPowerShellScript() {
-  const scriptContent = generatePowerShellScript();
+function downloadPowerShellScript(sheetUrl) {
+  const scriptContent = generatePowerShellScript(sheetUrl);
   const blob = Utilities.newBlob(scriptContent, 'text/plain', 'test_connectivity.ps1');
   return blob;
 }
