@@ -12,6 +12,11 @@ function include(filename) {
 // Cache des validations pour éviter les calculs répétitifs
 const validationCache = new Map();
 
+// Cache pour stocker les données de la feuille
+let sheetDataCache = null;
+let lastCacheUpdate = null;
+const CACHE_DURATION = 1000 * 30; // 30 secondes
+
 function validateIpFormat(ip) {
   if (validationCache.has(`ip_${ip}`)) {
     return validationCache.get(`ip_${ip}`);
@@ -46,11 +51,6 @@ function validatePort(port) {
 function validateFourCharField(value) {
   return value.length === 4;
 }
-
-// Cache pour stocker les données de la feuille
-let sheetDataCache = null;
-let lastCacheUpdate = null;
-const CACHE_DURATION = 1000 * 30; // 30 secondes
 
 function getSheetData(sheetUrl) {
   const now = new Date().getTime();
