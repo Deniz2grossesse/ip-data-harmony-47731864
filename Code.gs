@@ -1,7 +1,7 @@
 function doGet() {
   return HtmlService.createTemplateFromFile('index')
     .evaluate()
-    .setTitle('Network Rules Manager')
+    .setTitle('One clic onboarding - easy NES')
     .setFaviconUrl('https://www.google.com/images/favicon.ico');
 }
 
@@ -157,10 +157,21 @@ function checkDuplicates() {
   };
 }
 
-function saveData(data) {
+function saveData(data, sheetUrl) {
   try {
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-    const values = getSheetData();
+    let sheet;
+    if (sheetUrl) {
+      try {
+        const spreadsheet = SpreadsheetApp.openByUrl(sheetUrl);
+        sheet = spreadsheet.getActiveSheet();
+      } catch (error) {
+        return { success: false, message: "Impossible d'ouvrir le fichier. Vérifiez l'URL et les permissions." };
+      }
+    } else {
+      sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    }
+    
+    const values = getSheetData(sheetUrl);
     let nextRow = 12;
     
     // Recherche optimisée de la prochaine ligne vide

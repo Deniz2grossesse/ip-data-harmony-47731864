@@ -4,7 +4,7 @@
     <base target="_top">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Network Rules Manager</title>
+    <title>One clic onboarding - easy NES</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
       * {
@@ -437,6 +437,7 @@
         const rules = [];
         const ruleLines = document.querySelectorAll('.rule-line');
         let hasValidationError = false;
+        const sheetUrl = document.getElementById('sheetUrl').value;
         
         ruleLines.forEach((line, index) => {
           const sourceIp = line.querySelector('.sourceIp, #sourceIp').value;
@@ -555,7 +556,7 @@
                 .withFailureHandler(function(error) {
                   showNotification('Erreur lors de la sauvegarde: ' + error, true);
                 })
-                .saveData(rules);
+                .saveData(rules, sheetUrl);
             } else {
               showNotification('Des doublons ont été détectés. Veuillez les vérifier avant de sauvegarder.', true);
               verifyDuplicates();
@@ -739,7 +740,7 @@
   </head>
   <body>
     <div class="container">
-      <h1 class="app-title">Application</h1>
+      <h1 class="app-title">One clic onboarding - easy NES</h1>
       <div class="url-input">
         <label class="column-label">URL du fichier Google Sheets</label>
         <div style="display: flex; gap: 8px;">
