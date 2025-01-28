@@ -5,12 +5,8 @@ function doGet() {
     .setFaviconUrl('https://www.google.com/images/favicon.ico');
 }
 
-function showNetworkRulesUI() {
-  const html = HtmlService.createTemplateFromFile('index')
-    .evaluate()
-    .setTitle('Network Rules Manager')
-    .setWidth(1000)
-    .setHeight(600);
+function include(filename) {
+  return HtmlService.createHtmlOutputFromFile(filename).getContent();
 }
 
 // Cache des validations pour éviter les calculs répétitifs
@@ -56,16 +52,71 @@ let sheetDataCache = null;
 let lastCacheUpdate = null;
 const CACHE_DURATION = 1000 * 30; // 30 secondes
 
-function getSheetData() {
+function getSheetData(sheetUrl) {
   const now = new Date().getTime();
   if (sheetDataCache && lastCacheUpdate && (now - lastCacheUpdate) < CACHE_DURATION) {
     return sheetDataCache;
   }
 
-  const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  let sheet;
+  if (sheetUrl) {
+    try {
+      const spreadsheet = SpreadsheetApp.openByUrl(sheetUrl);
+      sheet = spreadsheet.getActiveSheet();
+    } catch (error) {
+      throw new Error("Impossible d'ouvrir le fichier. Vérifiez l'URL et les permissions.");
+    }
+  } else {
+    sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  }
+  
   sheetDataCache = sheet.getRange(12, 4, 200, 12).getValues();
   lastCacheUpdate = now;
   return sheetDataCache;
+}
+
+function getDraftData() {
+  try {
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    const data = sheet.getRange(12, 4, 200, 12).getValues();
+    const drafts = [];
+    
+    // Parcourir les lignes pour trouver les lignes incomplètes
+    for (let i = 0; i < data.length; i++) {
+      const row = data[i];
+      const [sourceIp, , , destIp, protocol, service, port, columnK, columnL, classification, fourCharCode] = row;
+      
+      // Vérifier si la ligne est incomplète (au moins un champ obligatoire manquant)
+      const isIncomplete = !sourceIp || !destIp || !protocol || !service || !port || 
+                          !columnK || !columnL || !classification || !fourCharCode ||
+                          !validateIpFormat(sourceIp) || !validateIpFormat(destIp) ||
+                          !validatePort(port) || !validateFourCharField(fourCharCode);
+      
+      // Si la ligne est incomplète et au moins un champ est rempli
+      if (isIncomplete && (sourceIp || destIp || protocol || service || port || columnK || columnL || classification || fourCharCode)) {
+        drafts.push({
+          lineNumber: i + 12,
+          sourceIp: sourceIp || "N/A",
+          destinationIp: destIp || "N/A",
+          protocol: protocol || "N/A",
+          service: service || "N/A",
+          port: port || "N/A",
+          columnK: columnK || "N/A",
+          columnL: columnL || "N/A",
+          classification: classification || "N/A",
+          fourCharCode: fourCharCode || "N/A"
+        });
+      }
+    }
+    
+    return { 
+      success: drafts.length > 0, 
+      message: drafts.length > 0 ? `${drafts.length} brouillon(s) trouvé(s)` : "Aucun brouillon trouvé",
+      drafts: drafts 
+    };
+  } catch (error) {
+    return { success: false, message: "Erreur lors de la récupération des brouillons: " + error.toString() };
+  }
 }
 
 function checkDuplicates() {
@@ -174,44 +225,6 @@ function markDuplicateAsIgnored(lineNumber, referenceLine) {
     return { success: true, message: "Doublon marqué comme ignoré" };
   } catch (error) {
     return { success: false, message: "Erreur lors du marquage: " + error.toString() };
-  }
-}
-
-function getDraftData() {
-  try {
-    const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-    const data = sheet.getRange(12, 4, 200, 12).getValues();
-    const drafts = [];
-    
-    // Parcourir les lignes pour trouver toutes les lignes incomplètes
-    for (let i = 0; i < data.length; i++) {
-      const row = data[i];
-      const [sourceIp, , , destIp, protocol, service, port, columnK, columnL, classification, fourCharCode] = row;
-      
-      // Si au moins un champ est rempli
-      if (sourceIp || destIp || protocol || service || port || columnK || columnL || classification || fourCharCode) {
-        drafts.push({
-          lineNumber: i + 12,
-          sourceIp: sourceIp || "N/A",
-          destinationIp: destIp || "N/A",
-          protocol: protocol || "N/A",
-          service: service || "N/A",
-          port: port || "N/A",
-          columnK: columnK || "N/A",
-          columnL: columnL || "N/A",
-          classification: classification || "N/A",
-          fourCharCode: fourCharCode || "N/A"
-        });
-      }
-    }
-    
-    return { 
-      success: drafts.length > 0, 
-      message: drafts.length > 0 ? `${drafts.length} brouillon(s) trouvé(s)` : "Aucun brouillon trouvé",
-      drafts: drafts 
-    };
-  } catch (error) {
-    return { success: false, message: "Erreur lors de la récupération des brouillons: " + error.toString() };
   }
 }
 

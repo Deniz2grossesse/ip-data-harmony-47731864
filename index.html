@@ -38,6 +38,13 @@
         color: #1a365d;
       }
 
+      .url-input {
+        width: 100%;
+        max-width: 600px;
+        margin: 0 auto 20px;
+        display: block;
+      }
+
       .rule-line {
         display: grid;
         grid-template-columns: 1.3fr 1.3fr 0.8fr 1fr 1fr 0.8fr 0.8fr 0.8fr 1fr;
@@ -236,6 +243,29 @@
       }
     </style>
     <script>
+      let currentSheetUrl = '';
+
+      function setSheetUrl() {
+        const urlInput = document.getElementById('sheetUrl');
+        currentSheetUrl = urlInput.value;
+        
+        // Vérifier si l'URL est valide
+        if (!currentSheetUrl.includes('docs.google.com/spreadsheets')) {
+          showNotification('URL invalide. Veuillez entrer une URL Google Sheets valide.', true);
+          return;
+        }
+        
+        // Tester l'accès au fichier
+        google.script.run
+          .withSuccessHandler(function() {
+            showNotification('URL du fichier mise à jour avec succès');
+          })
+          .withFailureHandler(function(error) {
+            showNotification('Erreur : ' + error, true);
+          })
+          .getSheetData(currentSheetUrl);
+      }
+
       function validateIpFormat(ip) {
         const regex = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/;
         if (!regex.test(ip)) return false;
@@ -645,6 +675,10 @@
           .withSuccessHandler(function(response) {
             if (response.success) {
               const drafts = response.drafts;
+              if (drafts.length === 0) {
+                showNotification('Aucun brouillon trouvé');
+                return;
+              }
               
               // Remplir le premier formulaire avec le premier brouillon
               const firstDraft = drafts[0];
@@ -661,13 +695,11 @@
               // Pour chaque brouillon supplémentaire, créer une nouvelle ligne
               for (let i = 1; i < drafts.length; i++) {
                 const draft = drafts[i];
-                duplicateField('source'); // Crée une nouvelle ligne
+                duplicateField('source');
                 
-                // Récupérer la dernière ligne créée
                 const ruleLines = document.getElementsByClassName('rule-line');
                 const lastLine = ruleLines[ruleLines.length - 1];
                 
-                // Remplir les champs de la nouvelle ligne
                 lastLine.querySelector('.sourceIp').value = draft.sourceIp === "N/A" ? "" : draft.sourceIp;
                 lastLine.querySelector('.destinationIp').value = draft.destinationIp === "N/A" ? "" : draft.destinationIp;
                 lastLine.querySelector('.protocol').value = draft.protocol === "N/A" ? "" : draft.protocol.toLowerCase();
@@ -708,6 +740,13 @@
   <body>
     <div class="container">
       <h1 class="app-title">Application</h1>
+      <div class="url-input">
+        <label class="column-label">URL du fichier Google Sheets</label>
+        <div style="display: flex; gap: 8px;">
+          <input type="text" id="sheetUrl" placeholder="https://docs.google.com/spreadsheets/d/..." class="input-field">
+          <button onclick="setSheetUrl()" class="save-button" style="margin: 0;">Charger</button>
+        </div>
+      </div>
       <div class="rule-line">
         <div class="rule-column">
           <label class="column-label">Source IP</label>
