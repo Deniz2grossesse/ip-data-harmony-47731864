@@ -108,7 +108,7 @@ export default function NetworkManager() {
       </header>
 
       <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <form onSubmit={handleMainInfoSubmit} className="space-y-6 bg-white shadow sm:rounded-lg p-6 mb-6">
+        <div className="space-y-6 bg-white shadow sm:rounded-lg p-6 mb-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
               <label htmlFor="department" className="block text-sm font-medium text-gray-700">
@@ -164,12 +164,7 @@ export default function NetworkManager() {
               )}
             </div>
           </div>
-          <div className="flex justify-end">
-            <Button type="submit">
-              Enregistrer les informations
-            </Button>
-          </div>
-        </form>
+        </div>
 
         <div className="bg-white shadow sm:rounded-lg p-6">
           {/* Grid des règles réseau */}
