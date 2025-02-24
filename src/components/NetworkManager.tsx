@@ -120,6 +120,7 @@ const NetworkManager = () => {
               value={formData.department}
               onChange={(e) => handleChange('department', e.target.value)}
               maxLength={4}
+              required
               className={errors.department ? 'border-red-500' : ''}
               placeholder="DEPT"
             />
@@ -137,6 +138,7 @@ const NetworkManager = () => {
               value={formData.projectCode}
               onChange={(e) => handleChange('projectCode', e.target.value)}
               maxLength={4}
+              required
               className={errors.projectCode ? 'border-red-500' : ''}
               placeholder="PROJ"
             />
@@ -154,6 +156,7 @@ const NetworkManager = () => {
               type="email"
               value={formData.email}
               onChange={(e) => handleChange('email', e.target.value)}
+              required
               className={errors.email ? 'border-red-500' : ''}
               placeholder="email@example.com"
             />

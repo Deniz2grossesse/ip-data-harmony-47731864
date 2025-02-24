@@ -1,5 +1,6 @@
-import NetworkManager from './components/NetworkManager';
-import { Toaster } from './components/ui/toaster';
+
+import { NetworkManager } from "./components/NetworkManager";
+import { Toaster } from "./components/ui/toaster";
 
 function App() {
   return (
