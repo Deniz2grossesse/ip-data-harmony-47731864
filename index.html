@@ -189,41 +189,14 @@
 
         let hasError = false;
 
-        if (departmentError) {
-          const errorEl = document.createElement('div');
-          errorEl.className = 'error-message';
-          errorEl.textContent = departmentError;
-          document.getElementById('department').parentNode.appendChild(errorEl);
-          hasError = true;
-        }
-
-        if (projectCodeError) {
-          const errorEl = document.createElement('div');
-          errorEl.className = 'error-message';
-          errorEl.textContent = projectCodeError;
-          document.getElementById('projectCode').parentNode.appendChild(errorEl);
-          hasError = true;
-        }
-
-        if (emailError) {
-          const errorEl = document.createElement('div');
-          errorEl.className = 'error-message';
-          errorEl.textContent = emailError;
-          document.getElementById('email').parentNode.appendChild(errorEl);
-          hasError = true;
-        }
-
-        if (hasError) {
+        if (departmentError || projectCodeError || emailError) {
           showNotification('Veuillez corriger les erreurs avant de soumettre', true);
           return;
         }
 
-        // Here you can add the logic to save the data
         google.script.run
           .withSuccessHandler(function(response) {
             showNotification('Informations enregistrées avec succès');
-            // Optionally reset the form
-            event.target.reset();
           })
           .withFailureHandler(function(error) {
             showNotification('Erreur lors de l\'enregistrement: ' + error, true);
@@ -233,6 +206,68 @@
             projectCode,
             email
           });
+      }
+
+      function checkDuplicates() {
+        google.script.run
+          .withSuccessHandler(function(response) {
+            if (response.success) {
+              showNotification(response.message);
+            } else {
+              const message = response.duplicates.map(d => 
+                `Doublon trouvé: lignes ${d.line1} et ${d.line2}`
+              ).join('\n');
+              showNotification(message, true);
+            }
+          })
+          .withFailureHandler(function(error) {
+            showNotification('Erreur lors de la vérification des doublons: ' + error, true);
+          })
+          .checkDuplicates();
+      }
+
+      function getDrafts() {
+        google.script.run
+          .withSuccessHandler(function(response) {
+            if (response.success) {
+              const draftsDiv = document.getElementById('drafts');
+              draftsDiv.innerHTML = '';
+              response.drafts.forEach(draft => {
+                const draftElement = document.createElement('div');
+                draftElement.className = 'draft-item';
+                draftElement.innerHTML = `
+                  <p>Ligne ${draft.lineNumber}</p>
+                  <p>Source IP: ${draft.sourceIp}</p>
+                  <p>Destination IP: ${draft.destinationIp}</p>
+                  <p>Protocol: ${draft.protocol}</p>
+                  <p>Service: ${draft.service}</p>
+                  <p>Port: ${draft.port}</p>
+                  <p>Code: ${draft.fourCharCode}</p>
+                `;
+                draftsDiv.appendChild(draftElement);
+              });
+              showNotification(response.message);
+            } else {
+              showNotification(response.message, true);
+            }
+          })
+          .withFailureHandler(function(error) {
+            showNotification('Erreur lors de la récupération des brouillons: ' + error, true);
+          })
+          .getDraftData();
+      }
+
+      function generateScript() {
+        google.script.run
+          .withSuccessHandler(function(scriptContent) {
+            const scriptArea = document.getElementById('generatedScript');
+            scriptArea.value = scriptContent;
+            showNotification('Script généré avec succès');
+          })
+          .withFailureHandler(function(error) {
+            showNotification('Erreur lors de la génération du script: ' + error, true);
+          })
+          .generatePowerShellScript();
       }
     </script>
   </head>
@@ -275,8 +310,72 @@
           >
         </div>
 
-        <button type="submit" class="submit-button">Enregistrer</button>
+        <div class="button-group">
+          <button type="submit" class="submit-button">Enregistrer</button>
+          <button type="button" onclick="checkDuplicates()" class="action-button">Vérifier les doublons</button>
+          <button type="button" onclick="getDrafts()" class="action-button">Reprendre un brouillon</button>
+          <button type="button" onclick="generateScript()" class="action-button">Générer le script PowerShell</button>
+        </div>
       </form>
+
+      <div id="drafts" class="drafts-container"></div>
+      <textarea id="generatedScript" class="script-area" readonly></textarea>
     </div>
+
+    <style>
+      .button-group {
+        display: flex;
+        gap: 1rem;
+        margin-top: 2rem;
+        flex-wrap: wrap;
+      }
+
+      .action-button {
+        flex: 1;
+        padding: 0.75rem;
+        background-color: #4b5563;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        min-width: 150px;
+      }
+
+      .action-button:hover {
+        background-color: #374151;
+      }
+
+      .drafts-container {
+        margin-top: 2rem;
+        border-top: 1px solid #e5e7eb;
+        padding-top: 1rem;
+      }
+
+      .draft-item {
+        background-color: #f3f4f6;
+        padding: 1rem;
+        border-radius: 6px;
+        margin-bottom: 1rem;
+      }
+
+      .draft-item p {
+        margin: 0.25rem 0;
+        font-size: 0.875rem;
+      }
+
+      .script-area {
+        width: 100%;
+        min-height: 200px;
+        margin-top: 2rem;
+        padding: 1rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 6px;
+        font-family: monospace;
+        background-color: #f8f9fa;
+        resize: vertical;
+      }
+    </style>
   </body>
 </html>
