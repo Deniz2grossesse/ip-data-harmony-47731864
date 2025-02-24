@@ -1,147 +1,172 @@
+
 import React, { useState } from 'react';
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
-import { 
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "./ui/select";
-import { toast } from "./ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 
 const NetworkManager = () => {
-  const [sourceIp, setSourceIp] = useState('');
-  const [destinations, setDestinations] = useState(['']);
-  const [protocol, setProtocol] = useState('TCP');
-  const [port, setPort] = useState('');
+  const [formData, setFormData] = useState({
+    department: '',
+    projectCode: '',
+    email: ''
+  });
+  const [errors, setErrors] = useState({
+    department: '',
+    projectCode: '',
+    email: ''
+  });
+  const { toast } = useToast();
 
-  const validateIpAddress = (ip: string) => {
-    const regex = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/;
-    if (!regex.test(ip)) return false;
+  const validateDepartment = (value: string) => {
+    const regex = /^[a-zA-Z0-9]{1,4}$/;
+    if (!value) {
+      return "Le département est requis";
+    }
+    if (!regex.test(value)) {
+      return "Le département doit contenir entre 1 et 4 caractères alphanumériques";
+    }
+    return "";
+  };
+
+  const validateProjectCode = (value: string) => {
+    const regex = /^[a-zA-Z0-9]{4}$/;
+    if (!value) {
+      return "Le code projet est requis";
+    }
+    if (!regex.test(value)) {
+      return "Le code projet doit contenir exactement 4 caractères alphanumériques";
+    }
+    return "";
+  };
+
+  const validateEmail = (value: string) => {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!value) {
+      return "L'email est requis";
+    }
+    if (!regex.test(value)) {
+      return "Format d'email invalide";
+    }
+    return "";
+  };
+
+  const handleChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
     
-    const parts = ip.split('.');
-    return parts.every(part => {
-      const num = parseInt(part, 10);
-      return num >= 0 && num <= 255;
-    });
-  };
+    let error = '';
+    switch (field) {
+      case 'department':
+        error = validateDepartment(value);
+        break;
+      case 'projectCode':
+        error = validateProjectCode(value);
+        break;
+      case 'email':
+        error = validateEmail(value);
+        break;
+    }
+    
+    setErrors(prev => ({ ...prev, [field]: error }));
 
-  const addDestination = () => {
-    setDestinations([...destinations, '']);
-  };
-
-  const handleDestinationChange = (index: number, value: string) => {
-    const newDestinations = [...destinations];
-    newDestinations[index] = value;
-    setDestinations(newDestinations);
+    if (error) {
+      toast({
+        title: "Erreur de validation",
+        description: error,
+        variant: "destructive"
+      });
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!validateIpAddress(sourceIp)) {
+    // Validate all fields before submission
+    const departmentError = validateDepartment(formData.department);
+    const projectCodeError = validateProjectCode(formData.projectCode);
+    const emailError = validateEmail(formData.email);
+
+    if (departmentError || projectCodeError || emailError) {
       toast({
-        title: "Erreur",
-        description: "Format d'adresse IP source invalide",
+        title: "Erreur de validation",
+        description: "Veuillez corriger les erreurs avant de soumettre",
         variant: "destructive"
       });
       return;
     }
 
-    for (const destIp of destinations) {
-      if (!validateIpAddress(destIp)) {
-        toast({
-          title: "Erreur",
-          description: "Format d'adresse IP destination invalide",
-          variant: "destructive"
-        });
-        return;
-      }
-    }
-
-    const portNum = parseInt(port);
-    if (isNaN(portNum) || portNum < 1 || portNum > 65535) {
-      toast({
-        title: "Erreur",
-        description: "Le port doit être entre 1 et 65535",
-        variant: "destructive"
-      });
-      return;
-    }
-
+    // Success case
     toast({
       title: "Succès",
-      description: "Données enregistrées avec succès"
+      description: "Informations enregistrées avec succès"
     });
   };
 
   return (
-    <div className="container mx-auto p-8 max-w-2xl">
-      <h1 className="text-2xl font-bold mb-8 text-center">Gestionnaire de Règles Réseau</h1>
-      
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
-          <label className="block text-sm font-medium mb-2">Source IP</label>
-          <Input
-            type="text"
-            value={sourceIp}
-            onChange={(e) => setSourceIp(e.target.value)}
-            placeholder="192.168.1.1"
-          />
+    <div className="min-h-screen bg-gray-50">
+      <header className="bg-white shadow">
+        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+          <h1 className="text-3xl font-bold text-gray-900">One clic onboarding - easy NES</h1>
         </div>
+      </header>
 
-        {destinations.map((dest, index) => (
-          <div key={index}>
-            <label className="block text-sm font-medium mb-2">Destination IP {index + 1}</label>
+      <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+        <form onSubmit={handleSubmit} className="space-y-6 bg-white shadow sm:rounded-lg p-6">
+          <div>
+            <label htmlFor="department" className="block text-sm font-medium text-gray-700">
+              Department
+            </label>
             <Input
-              type="text"
-              value={dest}
-              onChange={(e) => handleDestinationChange(index, e.target.value)}
-              placeholder="192.168.1.2"
+              id="department"
+              value={formData.department}
+              onChange={(e) => handleChange('department', e.target.value)}
+              maxLength={4}
+              className={errors.department ? 'border-red-500' : ''}
+              placeholder="DEPT"
             />
+            {errors.department && (
+              <p className="mt-1 text-sm text-red-500">{errors.department}</p>
+            )}
           </div>
-        ))}
 
-        <Button
-          type="button"
-          variant="outline"
-          onClick={addDestination}
-          className="w-full"
-        >
-          Ajouter une destination
-        </Button>
+          <div>
+            <label htmlFor="projectCode" className="block text-sm font-medium text-gray-700">
+              Project/Application Code
+            </label>
+            <Input
+              id="projectCode"
+              value={formData.projectCode}
+              onChange={(e) => handleChange('projectCode', e.target.value)}
+              maxLength={4}
+              className={errors.projectCode ? 'border-red-500' : ''}
+              placeholder="PROJ"
+            />
+            {errors.projectCode && (
+              <p className="mt-1 text-sm text-red-500">{errors.projectCode}</p>
+            )}
+          </div>
 
-        <div>
-          <label className="block text-sm font-medium mb-2">Protocole</label>
-          <Select value={protocol} onValueChange={setProtocol}>
-            <SelectTrigger>
-              <SelectValue placeholder="Sélectionnez un protocole" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="TCP">TCP</SelectItem>
-              <SelectItem value="UDP">UDP</SelectItem>
-              <SelectItem value="ICMP">ICMP</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              Requestor's Email
+            </label>
+            <Input
+              id="email"
+              type="email"
+              value={formData.email}
+              onChange={(e) => handleChange('email', e.target.value)}
+              className={errors.email ? 'border-red-500' : ''}
+              placeholder="email@example.com"
+            />
+            {errors.email && (
+              <p className="mt-1 text-sm text-red-500">{errors.email}</p>
+            )}
+          </div>
 
-        <div>
-          <label className="block text-sm font-medium mb-2">Port</label>
-          <Input
-            type="number"
-            value={port}
-            onChange={(e) => setPort(e.target.value)}
-            min="1"
-            max="65535"
-            placeholder="80"
-          />
-        </div>
-
-        <Button type="submit" className="w-full">
-          Enregistrer
-        </Button>
-      </form>
+          <Button type="submit" className="w-full">
+            Enregistrer
+          </Button>
+        </form>
+      </main>
     </div>
   );
 };
