@@ -2,7 +2,9 @@ function doGet() {
   return HtmlService.createTemplateFromFile('index')
     .evaluate()
     .setTitle('One clic onboarding - easy NES')
-    .setFaviconUrl('https://www.google.com/images/favicon.ico');
+    .setFaviconUrl('https://www.google.com/images/favicon.ico')
+    .addMetaTag('viewport', 'width=device-width, initial-scale=1')
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
 function include(filename) {
